@@ -83,6 +83,7 @@ public abstract class Verbose implements JVMProfiler {
 
   protected final String nextAnimation() {
     val animations = Sonar.get().getConfig().ANIMATION;
+    if (animations.isEmpty()) return "";
     final int nextIndex = ++animationIndex % animations.size();
     return animations.toArray(new String[0])[nextIndex];
   }
