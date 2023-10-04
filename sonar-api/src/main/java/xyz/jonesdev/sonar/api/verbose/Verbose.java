@@ -58,7 +58,7 @@ public abstract class Verbose implements JVMProfiler {
   }
 
   protected final @NotNull String prepareActionBarFormat() {
-    return Sonar.get().getConfig().ACTION_BAR_LAYOUT
+    return Sonar.get().getTranslations().getActionBar().getLayout()
       .replace("%queued%",
         DECIMAL_FORMAT.format(Sonar.get().getFallback().getQueue().getQueuedPlayers().size()))
       .replace("%verifying%", DECIMAL_FORMAT.format(Sonar.get().getFallback().getConnected().size()))
@@ -82,7 +82,7 @@ public abstract class Verbose implements JVMProfiler {
   }
 
   protected final String nextAnimation() {
-    val animations = Sonar.get().getConfig().ANIMATION;
+    val animations = Sonar.get().getTranslations().getActionBar().getAnimation();
     if (animations.isEmpty()) return "";
     final int nextIndex = ++animationIndex % animations.size();
     return animations.toArray(new String[0])[nextIndex];

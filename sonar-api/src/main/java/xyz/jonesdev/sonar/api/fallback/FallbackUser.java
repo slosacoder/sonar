@@ -89,11 +89,11 @@ public interface FallbackUser<X, Y> {
       // Call the VerifyFailedEvent for external API usage
       Sonar.get().getEventManager().publish(new UserVerifyFailedEvent(this, reason));
 
-      disconnect(Sonar.get().getConfig().VERIFICATION_FAILED);
+      disconnect(Sonar.get().getTranslations().getVerification().getFailed());
 
       if (reason != null) {
-        getFallback().getLogger().info(Sonar.get().getConfig().VERIFICATION_FAILED_LOG
-          .replace("%ip%", Sonar.get().getConfig().formatAddress(getInetAddress()))
+        getFallback().getLogger().info(Sonar.get().getTranslations().getVerification().getFailedLogMessage()
+          .replace("%ip%", Sonar.get().getConfig().getAddressParser().apply(getInetAddress()))
           .replace("%protocol%", String.valueOf(getProtocolVersion().getProtocol()))
           .replace("%reason%", reason));
       }
@@ -110,8 +110,8 @@ public interface FallbackUser<X, Y> {
       Sonar.get().getEventManager().publish(new UserBlacklistedEvent(this));
 
       getFallback().getBlacklisted().put(getInetAddress().toString());
-      getFallback().getLogger().info(Sonar.get().getConfig().VERIFICATION_BLACKLIST_LOG
-        .replace("%ip%", Sonar.get().getConfig().formatAddress(getInetAddress()))
+      getFallback().getLogger().info(Sonar.get().getTranslations().getVerification().getBlacklistLogMessage()
+        .replace("%ip%", Sonar.get().getConfig().getAddressParser().apply(getInetAddress()))
         .replace("%protocol%", String.valueOf(getProtocolVersion().getProtocol())));
     } else {
       // Cache the InetAddress for 3 minutes

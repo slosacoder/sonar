@@ -1,0 +1,38 @@
+language = "en"
+max-online-per-ip = 3
+log-player-addresses = true
+
+[database]
+	type = "NONE"
+	url = "localhost"
+	port = 3306
+	database = "sonar"
+	username = ""
+	password = ""
+
+[lockdown]
+	enabled = false
+	log-attempts = true
+	notify-admins = true
+
+[queue]
+	max-polls = 35
+
+[verification]
+	enabled = true
+	check-gravity = true
+	check-collisions = true
+	gamemode = 3
+	log-connections = true
+	log-during-attack = false
+	min-players-for-attack = 6
+	valid-name-regex = "^[a-zA-Z0-9_.*!]+$"
+	valid-brand-regex = "^[!-~ ]+$"
+	valid-locale-regex = "^[a-zA-Z_]+$"
+	max-brand-length = 86
+	timeout = 10000
+	read-timeout = 5000
+	max-login-packets = 200
+	max-movement-ticks = 8
+	max-verifying-players = 1024
+	rejoin-delay = 8000

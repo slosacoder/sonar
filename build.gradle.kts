@@ -21,7 +21,6 @@ versioner {
 allprojects {
   repositories {
     mavenCentral() // Lombok
-    maven(url = "https://jitpack.io") // simple-yaml
     maven(url = "https://repo.papermc.io/repository/maven-public") // Velocity natives
     maven(url = "https://repo.jonesdev.xyz/releases/") // Bungee & Velocity proxy module
   }
@@ -41,7 +40,6 @@ subprojects {
     // MiniMessage
     implementation("net.kyori:adventure-text-minimessage:4.14.0")
     implementation("net.kyori:adventure-text-serializer-gson:4.14.0")
-    implementation("net.kyori:adventure-text-serializer-legacy:4.14.0")
 
     implementation("net.kyori:adventure-nbt:4.14.0") // nbt
     implementation("com.j256.ormlite:ormlite-jdbc:6.1") // ORM

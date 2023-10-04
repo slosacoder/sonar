@@ -25,7 +25,9 @@ import xyz.jonesdev.cappuccino.ExpiringCache;
 import xyz.jonesdev.sonar.api.Sonar;
 import xyz.jonesdev.sonar.api.SonarSupplier;
 import xyz.jonesdev.sonar.api.command.subcommand.SubcommandRegistry;
-import xyz.jonesdev.sonar.api.config.SonarConfiguration;
+import xyz.jonesdev.sonar.api.config.GeneralConfiguration;
+import xyz.jonesdev.sonar.api.config.MessagesConfiguration;
+import xyz.jonesdev.sonar.api.config.TomlConfiguration;
 import xyz.jonesdev.sonar.api.controller.VerifiedPlayerController;
 import xyz.jonesdev.sonar.api.fallback.FallbackRatelimiter;
 import xyz.jonesdev.sonar.api.timer.SystemTimer;
@@ -42,9 +44,10 @@ import java.util.concurrent.TimeUnit;
 public abstract class SonarBootstrap<T> implements Sonar {
   private T plugin;
   private Verbose verboseHandler;
-  private SonarConfiguration config;
+  private GeneralConfiguration config;
+  private MessagesConfiguration translations;
   private VerifiedPlayerController verifiedPlayerController;
-  private File dataDirectory;
+  private final File dataDirectory;
   private final SubcommandRegistry subcommandRegistry;
   private final SystemTimer launchTimer = new SystemTimer();
 
@@ -58,7 +61,6 @@ public abstract class SonarBootstrap<T> implements Sonar {
     this.plugin = plugin;
     this.dataDirectory = dataDirectory;
     this.verboseHandler = verboseHandler;
-    this.config = new SonarConfiguration(dataDirectory);
     this.subcommandRegistry = new SubcommandRegistryHolder();
   }
 
@@ -88,19 +90,25 @@ public abstract class SonarBootstrap<T> implements Sonar {
     } catch (Throwable throwable) {
       // An error has occurred
       getLogger().error("An error has occurred while launching Sonar: {}", throwable);
-      throwable.printStackTrace();
+      throwable.printStackTrace(System.err);
     }
   }
 
   public abstract void enable();
 
   public final void reload() {
-    // Load the configuration
-    getConfig().load();
+    // Load all configurations
+    config = new GeneralConfiguration(TomlConfiguration.create(dataDirectory,
+      "config.toml", "configurations/default.toml"));
+    config.load();
+
+    translations = new MessagesConfiguration(TomlConfiguration.create(new File(dataDirectory, "translations/"),
+      config.getLanguage() + ".toml", "translations/" + config.getLanguage() + ".toml"));
+    translations.load();
 
     // Warn player if they reloaded and changed the database type
     if (getVerifiedPlayerController() != null
-      && getVerifiedPlayerController().getCachedDatabaseType() != getConfig().DATABASE_TYPE) {
+      && getVerifiedPlayerController().getCachedDatabaseType() != getConfig().getDatabase().getType()) {
       Sonar.get().getLogger().warn("Reloading the server after changing the database type"
         + " is generally not recommended as it can sometimes cause data loss.");
     }
@@ -108,9 +116,9 @@ public abstract class SonarBootstrap<T> implements Sonar {
     // Prepare cached packets
     FallbackPreparer.prepare();
 
-    // Update ratelimiter
+    // Update rate-limiter
     final ExpiringCache<InetAddress> expiringCache = Cappuccino.buildExpiring(
-      getConfig().VERIFICATION_DELAY, TimeUnit.MILLISECONDS, 250L
+      getConfig().getVerification().getConnectDelay(), TimeUnit.MILLISECONDS, 250L
     );
     FallbackRatelimiter.INSTANCE.setExpiringCache(expiringCache);
 

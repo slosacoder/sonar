@@ -19,7 +19,8 @@ package xyz.jonesdev.sonar.api;
 
 import org.jetbrains.annotations.NotNull;
 import xyz.jonesdev.sonar.api.command.subcommand.SubcommandRegistry;
-import xyz.jonesdev.sonar.api.config.SonarConfiguration;
+import xyz.jonesdev.sonar.api.config.GeneralConfiguration;
+import xyz.jonesdev.sonar.api.config.MessagesConfiguration;
 import xyz.jonesdev.sonar.api.controller.VerifiedPlayerController;
 import xyz.jonesdev.sonar.api.event.SonarEventManager;
 import xyz.jonesdev.sonar.api.fallback.Fallback;
@@ -46,7 +47,9 @@ public interface Sonar {
 
   @NotNull File getDataDirectory();
 
-  @NotNull SonarConfiguration getConfig();
+  @NotNull GeneralConfiguration getConfig();
+
+  @NotNull MessagesConfiguration getTranslations();
 
   @NotNull SubcommandRegistry getSubcommandRegistry();
 

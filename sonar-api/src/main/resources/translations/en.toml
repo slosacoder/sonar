@@ -1,0 +1,81 @@
+prefix = "<rainbow>Sonar Antibot extreme killer edition quality bypass</rainbow> <gray>» <reset>"
+support-url = "https://jonesdev.xyz/discord/"
+header = ["<yellow><bold>Sonar", "<reset>"]
+footer = ["<gray>If you believe that this is an error, contact an administrator."]
+too-many-online-per-ip = ["%header%", "<red>There are too many players online with your IP address.", "%footer%"]
+
+[lockdown]
+	notification = "%prefix%<green>Hey, the server is currently in lockdown mode. If you want to disable the lockdown mode, type <white>/sonar lockdown<green>."
+	console-log = "%player% (%ip%, %protocol%) tried to join during lockdown mode."
+	disabled = "%prefix%The server is no longer in lockdown mode."
+	enabled = "%prefix%The server is now in lockdown mode."
+	disconnect-message = ["%header%", "<red>The server is currently locked down, please try again later.", "%footer%"]
+
+[commands]
+	sub-command-no-permission = "%prefix%<red>You do not have permission to execute this subcommand. <gray>(%permission%)"
+	incorrect-command-usage = "%prefix%<red>Usage: /sonar %usage%"
+	cool-down = "%prefix%<red>You can only execute this command every 0.5 seconds."
+	player-only = "%prefix%<red>You can only execute this command as a player."
+	cool-down-left = "%prefix%<red>Please wait another <bold>%time-left%s<red>."
+	invalid-ip-address = "%prefix%The IP address you provided seems to be invalid."
+	console-only = "%prefix%<red>For security reasons, you can only execute this command through console."
+	illegal-ip-address = "%prefix%The IP address you provided seems to be either a local or loopback IP."
+
+	[commands.verified]
+		size = "%prefix%There are currently %amount% unique player(s) verified."
+		removed = "%prefix%Successfully unverified %ip%."
+		blocked = "%prefix%Please wait for the current operation to finish."
+		cleared = "%prefix%You successfully unverified a total of %removed% unique player(s)."
+		ip-not-found = "%prefix%The IP address you provided is not verified."
+		empty = "%prefix%The list of verified players is currently empty. Therefore, no players were unverified."
+
+	[commands.blacklist]
+		added-warning = "%prefix%<red>Warning: <white>%ip% is currently whitelisted. Consider removing the IP address from the list of verified players to avoid potential issues."
+		size = "%prefix%The blacklist currently contains %amount% IP address(es)."
+		removed = "%prefix%Successfully removed %ip% from the blacklist."
+		added = "%prefix%Successfully added %ip% to the blacklist."
+		cleared = "%prefix%You successfully removed a total of %removed% IP address(es) from the blacklist."
+		ip-not-found = "%prefix%The IP address you provided is not blacklisted."
+		empty = "%prefix%The blacklist is currently empty. Therefore, no IP addresses were removed from the blacklist."
+		duplicate-ip = "%prefix%The IP address you provided is already blacklisted."
+
+  [commands.verbose]
+		subscribed = "%prefix%You are now viewing Sonar verbose."
+		unsubscribed = "%prefix%You are no longer viewing Sonar verbose."
+		subscribed-other = "%prefix%%player% is now viewing Sonar verbose."
+		unsubscribed-other = "%prefix%%player% is no longer viewing Sonar verbose."
+
+	[commands.database]
+		purge-confirm = "%prefix%<red>Please confirm that you want to delete all database entries by typing <gray>/sonar database purge confirm<red>."
+		already-purging = "%prefix%<red>There is already a purge currently running."
+		not-selected = "%prefix%<red>You have not selected any data storage type."
+		disallowed = "%prefix%<red>Purging the database is currently disallowed. Therefore, your action has been cancelled."
+		purged = "%prefix%<green>Successfully purged all database entries."
+
+	[commands.database.reload]
+		start = "%prefix%Reloading all databases..."
+		finish = "%prefix%<green>Successfully reloaded <gray>(%taken%ms)"
+
+	[commands.reload]
+		start = "%prefix%Reloading Sonar..."
+		finish = "%prefix%<green>Successfully reloaded <gray>(%taken%ms)"
+
+[verification]
+	invalid-username = ["%header%", "<red>Your username contains invalid characters.", "%footer%"]
+	blacklisted = ["%header%", "<red>You are currently denied from entering the server.", "<red>Please wait a few minutes to be able to join the server again.", "<gold>False positive? <gray>%support-url%", "%footer%"]
+	success = ["%header%", "<green>You have successfully passed the verification.", "<white>You are now able to play on the server when you reconnect."]
+	too-many-players = ["%header%", "<gold>Too many players are currently trying to log in, try again later.", "<gray>Please wait a few seconds before trying to join again.", "%footer%"]
+	already-verifying = ["%header%", "<red>Your IP address is currently being verified.", "<red>Please wait a few seconds before trying to verify again.", "%footer%"]
+	already-queued = ["%header%", "<red>Your IP address is currently queued for verification.", "<red>Please wait a few minutes before trying to verify again.", "%footer%"]
+	failed = ["%header%", "<red>You have failed the verification.", "<gray>Please wait a few seconds before trying to verify again.", "<gold>Need help? <gray>%support-url%", "%footer%"]
+	too-fast-reconnect = ["%header%", "<gold>You reconnected too fast, try again later.", "<gray>Please wait a few seconds before trying to verify again.", "%footer%"]
+
+	[verification.logs]
+		blacklisted = "%ip% (%protocol%) was blacklisted for too many failed attempts"
+		connection = "%name%%ip% (%protocol%) has connected."
+		failed = "%ip% (%protocol%) has failed the bot check for: %reason%"
+		successful = "%name% has been verified successfully (%time%s!)"
+
+[action-bar]
+	layout = "%prefix%<gray>Queued <white>%queued% <dark_aqua>╺ <gray>Verifying <white>%verifying% <dark_aqua>╺ <gray>Blacklisted <white>%blacklisted% <dark_aqua>| <green>⬆ <white>%outgoing-traffic%/s <red>⬇ <white>%incoming-traffic%/s  <green><bold>%animation%"
+	animation = ["◜", "◝", "◞", "◟"]

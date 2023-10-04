@@ -65,7 +65,7 @@ public final class Fallback {
   };
 
   public boolean isPotentiallyUnderAttack() {
-    return connected.size() > SONAR.getConfig().MINIMUM_PLAYERS_FOR_ATTACK
-      || queue.getQueuedPlayers().size() > SONAR.getConfig().MINIMUM_PLAYERS_FOR_ATTACK;
+    final int minimum = SONAR.getConfig().getVerification().getMinPlayersForAttack();
+    return connected.size() > minimum || queue.getQueuedPlayers().size() > minimum;
   }
 }
