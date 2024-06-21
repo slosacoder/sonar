@@ -19,9 +19,9 @@ package xyz.jonesdev.sonar.common.fallback.session.captcha;
 
 import org.jetbrains.annotations.NotNull;
 import xyz.jonesdev.sonar.api.fallback.FallbackUser;
+import xyz.jonesdev.sonar.common.fallback.protocol.FallbackCaptchaPreparer;
 import xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacket;
-import xyz.jonesdev.sonar.common.fallback.protocol.captcha.CaptchaPreparer;
-import xyz.jonesdev.sonar.common.fallback.protocol.captcha.MapCaptchaInfo;
+import xyz.jonesdev.sonar.common.fallback.protocol.map.MapCaptchaInfo;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.MapDataPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.SetContainerSlotPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.SystemChatPacket;
@@ -55,7 +55,7 @@ public final class FallbackHandCaptchaSessionHandler extends FallbackCaptchaSess
     // If the player is on Bedrock, set the 1st slot (ID 0) in the player's hotbar to the map.
     user.delayedWrite(user.isGeyser() ? CAPTCHA_SET_SLOT_BEDROCK : CAPTCHA_SET_SLOT);
     // Send random captcha to the player
-    final MapCaptchaInfo captcha = CaptchaPreparer.getRandomCaptcha();
+    final MapCaptchaInfo captcha = FallbackCaptchaPreparer.getRandomCaptcha();
     if (user.getProtocolVersion().compareTo(MINECRAFT_1_8) < 0) {
       // 1.7.2-1.7.10 needs separate packets for each axis
       for (final FallbackPacket legacyPacket : captcha.getLegacyPackets()) {

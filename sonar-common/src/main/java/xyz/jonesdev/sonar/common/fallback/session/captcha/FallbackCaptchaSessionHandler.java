@@ -22,8 +22,8 @@ import org.jetbrains.annotations.NotNull;
 import xyz.jonesdev.sonar.api.Sonar;
 import xyz.jonesdev.sonar.api.config.SonarConfiguration;
 import xyz.jonesdev.sonar.api.fallback.FallbackUser;
+import xyz.jonesdev.sonar.common.fallback.protocol.FallbackCaptchaPreparer;
 import xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacket;
-import xyz.jonesdev.sonar.common.fallback.protocol.captcha.CaptchaPreparer;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.SetPlayerPositionPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.SetPlayerPositionRotation;
 import xyz.jonesdev.sonar.common.fallback.session.FallbackSessionHandler;
@@ -40,7 +40,7 @@ public abstract class FallbackCaptchaSessionHandler extends FallbackSessionHandl
     super(user, username, uuid);
 
     // Kick the player if we don't have any data loaded yet
-    if (!CaptchaPreparer.isCaptchaAvailable()) {
+    if (!FallbackCaptchaPreparer.isCaptchaAvailable()) {
       user.disconnect(Sonar.get().getConfig().getVerification().getCurrentlyPreparing(), false);
       throw new CorruptedFrameException("Captcha is not available at this time");
     }

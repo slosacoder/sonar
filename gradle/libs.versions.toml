@@ -28,7 +28,8 @@ bstats-velocity = { module = "org.bstats:bstats-velocity", version.ref = "bstats
 caffeine = "com.github.ben-manes.caffeine:caffeine:3.1.8"
 ormlite = "com.j256.ormlite:ormlite-jdbc:6.1"
 lombok = "org.projectlombok:lombok:1.18.32"
-capja = "xyz.jonesdev:capja:1.0.3"
+annotations = "org.jetbrains:annotations:24.0.1"
+imagefilters = "com.jhlabs:filters:2.0.235-1"
 bungeecord = "net.md_5:bungeecord-proxy:master-SNAPSHOT"
 velocity = "com.velocitypowered:velocity-proxy:3.3.0-SNAPSHOT"
 # We have to use 1.8 for backwards compatibility

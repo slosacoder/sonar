@@ -15,19 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package xyz.jonesdev.sonar.common.fallback.protocol.captcha;
+package xyz.jonesdev.sonar.common.fallback.protocol;
 
+import com.jhlabs.image.AbstractBufferedImageOp;
+import com.jhlabs.image.BumpFilter;
+import com.jhlabs.image.SmearFilter;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Nullable;
-import xyz.jonesdev.capja.SimpleCaptchaGenerator;
-import xyz.jonesdev.capja.filter.SimpleRippleFilter;
-import xyz.jonesdev.capja.filter.SimpleScratchFilter;
-import xyz.jonesdev.capja.libs.jhlabs.image.AbstractBufferedImageOp;
-import xyz.jonesdev.capja.libs.jhlabs.image.BumpFilter;
-import xyz.jonesdev.capja.libs.jhlabs.image.SmearFilter;
 import xyz.jonesdev.sonar.api.Sonar;
 import xyz.jonesdev.sonar.api.config.SonarConfiguration;
 import xyz.jonesdev.sonar.api.timer.SystemTimer;
+import xyz.jonesdev.sonar.captcha.CodeCaptchaImageGenerator;
+import xyz.jonesdev.sonar.captcha.imagefilters.SimpleRippleFilter;
+import xyz.jonesdev.sonar.captcha.imagefilters.SimpleScratchFilter;
+import xyz.jonesdev.sonar.common.fallback.protocol.map.MapCaptchaInfo;
+import xyz.jonesdev.sonar.common.fallback.protocol.map.MapColorPalette;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -40,7 +42,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
 @UtilityClass
-public class CaptchaPreparer {
+public class FallbackCaptchaPreparer {
   private final ExecutorService PREPARATION_SERVICE = Executors.newSingleThreadExecutor();
   private final Random RANDOM = new Random();
 
@@ -64,7 +66,7 @@ public class CaptchaPreparer {
     PREPARATION_SERVICE.execute(() -> {
       // Create the images using capja
       final @Nullable File backgroundImage = Sonar.get().getConfig().getVerification().getMapCaptcha().getBackgroundImage();
-      final SimpleCaptchaGenerator generator = new SimpleCaptchaGenerator(128, 128, backgroundImage);
+      final CodeCaptchaImageGenerator generator = new CodeCaptchaImageGenerator(128, 128, backgroundImage);
       final char[] dictionary = config.getDictionary().toCharArray();
 
       // Prepare the filters for the CAPTCHA

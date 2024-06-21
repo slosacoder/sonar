@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 import xyz.jonesdev.sonar.api.fallback.protocol.ProtocolVersion;
 import xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacket;
-import xyz.jonesdev.sonar.common.fallback.protocol.captcha.ItemType;
+import xyz.jonesdev.sonar.common.fallback.protocol.item.ItemType;
 import xyz.jonesdev.sonar.common.fallback.protocol.metadata.MetadataByteEntry;
 import xyz.jonesdev.sonar.common.fallback.protocol.metadata.MetadataEntry;
 import xyz.jonesdev.sonar.common.fallback.protocol.metadata.MetadataSlotEntry;

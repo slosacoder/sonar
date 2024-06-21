@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package xyz.jonesdev.sonar.common.fallback.protocol.captcha;
+package xyz.jonesdev.sonar.common.fallback.protocol.map;
 
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
@@ -173,7 +173,7 @@ public class MapColorPalette {
   };
 
   public int[] getBufferFromImage(final @NotNull BufferedImage bufferedImage) {
-    final int[] buffer = new int[128 * 128];
+    final int[] buffer = new int[bufferedImage.getWidth() * bufferedImage.getHeight()];
 
     bufferedImage.getRGB(0, 0,
       bufferedImage.getWidth(), bufferedImage.getHeight(),

@@ -26,10 +26,9 @@ import xyz.jonesdev.sonar.api.Sonar;
 import xyz.jonesdev.sonar.api.config.SonarConfiguration;
 import xyz.jonesdev.sonar.common.fallback.protocol.block.BlockType;
 import xyz.jonesdev.sonar.common.fallback.protocol.block.BlockUpdate;
-import xyz.jonesdev.sonar.common.fallback.protocol.captcha.CaptchaPreparer;
-import xyz.jonesdev.sonar.common.fallback.protocol.captcha.ItemType;
 import xyz.jonesdev.sonar.common.fallback.protocol.dimension.DimensionRegistry;
 import xyz.jonesdev.sonar.common.fallback.protocol.entity.EntityType;
+import xyz.jonesdev.sonar.common.fallback.protocol.item.ItemType;
 import xyz.jonesdev.sonar.common.fallback.protocol.metadata.MetadataSlotEntry;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.configuration.FinishConfigurationPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.configuration.RegistryDataPacket;
@@ -241,7 +240,7 @@ public class FallbackPreparer {
       }
 
       // Prepare CAPTCHA answers
-      CaptchaPreparer.prepare();
+      FallbackCaptchaPreparer.prepare();
     } else {
       // Throw away if not needed
       enterCodeMessage = null;

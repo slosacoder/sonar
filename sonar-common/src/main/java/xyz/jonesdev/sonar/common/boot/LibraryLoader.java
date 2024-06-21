@@ -70,6 +70,13 @@ class LibraryLoader {
         .artifactId("mariadb-java-client")
         .version("3.3.3")
         .relocate("org{}mariadb", "xyz{}jonesdev{}sonar{}libs{}mariadb")
+        .build(),
+      // jhlabs image filters
+      Library.builder()
+        .groupId("com{}jhlabs")
+        .artifactId("filters")
+        .version("2.0.235-1")
+        .relocate("com{}jhlabs", "xyz{}jonesdev{}sonar{}libs{}jhlabs")
         .build()
     );
 
