@@ -1,0 +1,85 @@
+/*
+ * Copyright (C) 2023-2024 Sonar Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package xyz.jonesdev.sonar.captcha;
+
+import com.jhlabs.image.CausticsFilter;
+import com.jhlabs.image.SaturationFilter;
+import com.jhlabs.image.UnsharpFilter;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.Objects;
+import java.util.Random;
+
+import static java.awt.image.BufferedImage.TYPE_INT_RGB;
+
+@Getter
+@RequiredArgsConstructor
+public abstract class CaptchaImageGenerator {
+  protected final int width, height;
+  private final @Nullable File backgroundImage;
+  protected BufferedImage background;
+
+  protected static final Random RANDOM = new Random();
+
+  protected final void createBackgroundImage() {
+    if (background == null) {
+      // Try loading the background image from the given file
+      try {
+        background = ImageIO.read(Objects.requireNonNull(backgroundImage));
+        // Clip the image if the dimensions mismatch
+        if (background.getWidth() > width || background.getHeight() > height) {
+          background = background.getSubimage(0, 0, width, height);
+        }
+      } catch (Exception exception) {
+        // Don't use any special background image
+        background = new BufferedImage(width, height, TYPE_INT_RGB);
+        // Fill the entire background image with a noise texture
+        background = new CausticsFilter().filter(background, null);
+        // Adjust the saturation of the randomly generated background noise
+        final SaturationFilter saturationFilter = new SaturationFilter();
+        saturationFilter.setAmount(0.1f + RANDOM.nextFloat() * 0.3f);
+        background = saturationFilter.filter(background, null);
+        // Un-sharpen the background a bit
+        background = new UnsharpFilter().filter(background, null);
+      }
+    }
+  }
+
+  protected final @NotNull BufferedImage mergeImages(final @NotNull BufferedImage background,
+                                                     final @NotNull BufferedImage foreground) {
+    // Get the background image and create a new foreground image
+    final BufferedImage finalImage = new BufferedImage(width, height, TYPE_INT_RGB);
+    // Create a new image with transparency for the merged result
+    final Graphics2D graphics = finalImage.createGraphics();
+    // Draw the foreground image on top of the background at specified coordinates
+    graphics.drawImage(background, 0, 0, null);
+    // Set AlphaComposite to handle transparency for the foreground image
+    graphics.setComposite(AlphaComposite.SrcOver);
+    // Draw the foreground image on top of the background at specified coordinates
+    graphics.drawImage(foreground, 0, 0, null);
+    graphics.dispose();
+    return finalImage;
+  }
+}

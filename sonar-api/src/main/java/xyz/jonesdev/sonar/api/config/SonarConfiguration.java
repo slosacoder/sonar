@@ -193,32 +193,33 @@ public final class SonarConfiguration {
 
     verification.vehicle.timing = Verification.Timing.valueOf(generalConfig.getString("verification.checks.vehicle.timing"));
 
-    verification.map.timing = Verification.Timing.valueOf(generalConfig.getString("verification.checks.map-captcha.timing"));
-    verification.map.scratches = generalConfig.getBoolean("verification.checks.map-captcha.effects.scratches");
-    verification.map.ripple = generalConfig.getBoolean("verification.checks.map-captcha.effects.ripple");
-    verification.map.bump = generalConfig.getBoolean("verification.checks.map-captcha.effects.bump");
+    verification.mapCaptcha.timing = Verification.Timing.valueOf(generalConfig.getString("verification.checks.map-captcha.timing"));
+    verification.mapCaptcha.type = Verification.MapCaptcha.CaptchaType.valueOf(generalConfig.getString("verification.checks.map-captcha.type"));
+    verification.mapCaptcha.scratches = generalConfig.getBoolean("verification.checks.map-captcha.effects.scratches");
+    verification.mapCaptcha.ripple = generalConfig.getBoolean("verification.checks.map-captcha.effects.ripple");
+    verification.mapCaptcha.bump = generalConfig.getBoolean("verification.checks.map-captcha.effects.bump");
 
-    verification.map.distortion.enabled = generalConfig.getBoolean("verification.checks.map-captcha.effects.distortion.enabled");
-    verification.map.distortion.shape = generalConfig.getInt("verification.checks.map-captcha.effects.distortion.shape");
-    verification.map.distortion.distance = generalConfig.getInt("verification.checks.map-captcha.effects.distortion.distance");
-    verification.map.distortion.density = (float) generalConfig.getYaml().getDouble("verification.checks.map-captcha.effects.distortion.density");
-    verification.map.distortion.mix = (float) generalConfig.getYaml().getDouble("verification.checks.map-captcha.effects.distortion.mix");
+    verification.mapCaptcha.distortion.enabled = generalConfig.getBoolean("verification.checks.map-captcha.effects.distortion.enabled");
+    verification.mapCaptcha.distortion.shape = generalConfig.getInt("verification.checks.map-captcha.effects.distortion.shape");
+    verification.mapCaptcha.distortion.distance = generalConfig.getInt("verification.checks.map-captcha.effects.distortion.distance");
+    verification.mapCaptcha.distortion.density = (float) generalConfig.getYaml().getDouble("verification.checks.map-captcha.effects.distortion.density");
+    verification.mapCaptcha.distortion.mix = (float) generalConfig.getYaml().getDouble("verification.checks.map-captcha.effects.distortion.mix");
 
     final String backgroundImagePath = generalConfig.getString("verification.checks.map-captcha.background");
     if (!backgroundImagePath.isEmpty()) {
-      verification.map.backgroundImage = new File(pluginFolder, backgroundImagePath);
-      if (!verification.map.backgroundImage.exists()) {
+      verification.mapCaptcha.backgroundImage = new File(pluginFolder, backgroundImagePath);
+      if (!verification.mapCaptcha.backgroundImage.exists()) {
         Sonar.get().getLogger().error("The background image does not exist! Please check the configuration.");
       }
     } else {
-      verification.map.backgroundImage = null;
+      verification.mapCaptcha.backgroundImage = null;
     }
 
-    verification.map.autoColor = generalConfig.getBoolean("verification.checks.map-captcha.auto-color");
-    verification.map.precomputeAmount = clamp(generalConfig.getInt("verification.checks.map-captcha.precompute"), 1, 1000);
-    verification.map.maxDuration = clamp(generalConfig.getInt("verification.checks.map-captcha.max-duration"), 5000, 360000);
-    verification.map.maxTries = generalConfig.getInt("verification.checks.map-captcha.max-tries");
-    verification.map.dictionary = generalConfig.getString("verification.checks.map-captcha.dictionary");
+    verification.mapCaptcha.autoColor = generalConfig.getBoolean("verification.checks.map-captcha.auto-color");
+    verification.mapCaptcha.precomputeAmount = clamp(generalConfig.getInt("verification.checks.map-captcha.precompute"), 1, 1000);
+    verification.mapCaptcha.maxDuration = clamp(generalConfig.getInt("verification.checks.map-captcha.max-duration"), 5000, 360000);
+    verification.mapCaptcha.maxTries = generalConfig.getInt("verification.checks.map-captcha.max-tries");
+    verification.mapCaptcha.dictionary = generalConfig.getString("verification.checks.map-captcha.dictionary");
 
     verification.brand.enabled = generalConfig.getBoolean("verification.checks.client-brand.enabled");
     verification.brand.validRegex = Pattern.compile(generalConfig.getString("verification.checks.client-brand.valid-regex"));
@@ -386,14 +387,15 @@ public final class SonarConfiguration {
       private final String displayName;
     }
 
-    private final Map map = new Map();
+    private final MapCaptcha mapCaptcha = new MapCaptcha();
     private final Gravity gravity = new Gravity();
     private final Vehicle vehicle = new Vehicle();
     private final Brand brand = new Brand();
 
     @Getter
-    public static final class Map {
+    public static final class MapCaptcha {
       private Timing timing;
+      private CaptchaType type;
       private boolean scratches;
       private boolean ripple;
       private boolean bump;
@@ -403,6 +405,10 @@ public final class SonarConfiguration {
       private int maxDuration;
       private int maxTries;
       private String dictionary;
+
+      public enum CaptchaType {
+        HAND, PUZZLE
+      }
 
       private Smear distortion = new Smear();
 

@@ -108,6 +108,11 @@ verification:
       # - DURING_ATTACK: Noví hráči dostanou map captchu jenom při útoku
       # - NEVER: Noví hráči nikdy nedostanou map CAPTCHU (Doporučeno)
       timing: NEVER
+      # How should Sonar display the map to the player?
+      # Possible types: HAND, PUZZLE
+      # - HAND: New players will get the CAPTCHA as an item in their hand (Recommended)
+      # - PUZZLE: New players will have to click on the missing puzzle piece on item frames
+      type: HAND
       # Možnosti pro efekty na zobrazeném obrázku
       # Toto byste měli upravovat, pouze pokud víte, co děláte
       effects:

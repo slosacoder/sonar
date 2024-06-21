@@ -25,12 +25,68 @@ import java.util.function.Function;
 
 @RequiredArgsConstructor
 public enum EntityType {
-  BOAT(protocolVersion -> {
-    // Useful resources:
-    // - https://github.com/PrismarineJS/minecraft-data/blob/master/data/pc/
-    // - https://pokechu22.github.io/Burger/1.20.4.html
+  // Useful resources:
+  // - https://github.com/PrismarineJS/minecraft-data/blob/master/data/pc/
+  // - https://pokechu22.github.io/Burger/1.20.4.html
+  ITEM_FRAME(protocolVersion -> {
     switch (protocolVersion) {
+      case MINECRAFT_1_7_2:
+      case MINECRAFT_1_7_6:
+      case MINECRAFT_1_8:
+      case MINECRAFT_1_9:
+      case MINECRAFT_1_9_1:
+      case MINECRAFT_1_9_2:
+      case MINECRAFT_1_9_4:
+      case MINECRAFT_1_10:
+      case MINECRAFT_1_11:
+      case MINECRAFT_1_11_1:
+      case MINECRAFT_1_12:
+      case MINECRAFT_1_12_1:
+      case MINECRAFT_1_12_2:
+      case MINECRAFT_1_13:
+      case MINECRAFT_1_13_1:
+      case MINECRAFT_1_13_2:
+        return 71;
+      case MINECRAFT_1_14:
+      case MINECRAFT_1_14_1:
+      case MINECRAFT_1_14_2:
+      case MINECRAFT_1_14_3:
+      case MINECRAFT_1_14_4:
+        return 35;
+      case MINECRAFT_1_15:
+      case MINECRAFT_1_15_1:
+      case MINECRAFT_1_15_2:
+        return 36;
+      case MINECRAFT_1_16:
+      case MINECRAFT_1_16_1:
+      case MINECRAFT_1_16_2:
+      case MINECRAFT_1_16_3:
+      case MINECRAFT_1_16_4:
+        return 38;
+      case MINECRAFT_1_17:
+      case MINECRAFT_1_17_1:
+      case MINECRAFT_1_18:
+      case MINECRAFT_1_18_2:
+        return 42;
+      case MINECRAFT_1_19:
+      case MINECRAFT_1_19_1:
+        return 45;
+      case MINECRAFT_1_19_3:
+        return 46;
+      case MINECRAFT_1_19_4:
+      case MINECRAFT_1_20:
+      case MINECRAFT_1_20_2:
+        return 56;
+      case MINECRAFT_1_20_3:
+        return 57;
+      case MINECRAFT_1_20_5:
+      case MINECRAFT_1_21:
       default:
+        return 60;
+    }
+  }),
+  BOAT(protocolVersion -> {
+    switch (protocolVersion) {
       case MINECRAFT_1_7_2:
       case MINECRAFT_1_7_6:
       case MINECRAFT_1_8:
@@ -79,6 +135,7 @@ public enum EntityType {
         return 9;
       case MINECRAFT_1_20_5:
       case MINECRAFT_1_21:
+      default:
         return 10;
     }
   });

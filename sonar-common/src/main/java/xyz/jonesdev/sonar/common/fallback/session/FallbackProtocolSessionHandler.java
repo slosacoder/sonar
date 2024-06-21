@@ -24,6 +24,7 @@ import xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacketDecoder;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.SetHeldItemPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.TransactionPacket;
+import xyz.jonesdev.sonar.common.fallback.session.captcha.FallbackCaptchaSessionHandler;
 
 import java.util.UUID;
 
@@ -83,7 +84,7 @@ public final class FallbackProtocolSessionHandler extends FallbackSessionHandler
     if (Sonar.get().getFallback().shouldPerformVehicleCheck()) {
       decoder.setListener(new FallbackVehicleSessionHandler(user, username, uuid, forceCAPTCHA));
     } else if (forceCAPTCHA || Sonar.get().getFallback().shouldPerformCaptcha()) {
-      decoder.setListener(new FallbackCAPTCHASessionHandler(user, username, uuid));
+      decoder.setListener(FallbackCaptchaSessionHandler.getPreferred(user, username, uuid));
     } else {
       // The player has passed all checks
       finishVerification();

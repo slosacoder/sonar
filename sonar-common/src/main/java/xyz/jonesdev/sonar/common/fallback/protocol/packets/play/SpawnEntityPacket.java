@@ -25,6 +25,7 @@ import lombok.ToString;
 import org.jetbrains.annotations.NotNull;
 import xyz.jonesdev.sonar.api.fallback.protocol.ProtocolVersion;
 import xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacket;
+import xyz.jonesdev.sonar.common.fallback.protocol.entity.EntityType;
 
 import java.util.UUID;
 
@@ -37,8 +38,11 @@ import static xyz.jonesdev.sonar.common.util.ProtocolUtil.writeVarInt;
 @NoArgsConstructor
 @AllArgsConstructor
 public final class SpawnEntityPacket implements FallbackPacket {
-  private int entityId, entityType;
+  private int entityId, data;
+  private EntityType entityType;
   private double x, y, z;
+  private float yaw, headYaw, pitch;
+  private float velocityX, velocityY, velocityZ;
 
   @Override
   public void encode(final ByteBuf byteBuf, final @NotNull ProtocolVersion protocolVersion) throws Exception {
@@ -46,41 +50,38 @@ public final class SpawnEntityPacket implements FallbackPacket {
 
     final boolean v1_9orHigher = protocolVersion.compareTo(MINECRAFT_1_8) > 0;
 
-    if (v1_9orHigher) {
+    if (protocolVersion.compareTo(MINECRAFT_1_8) > 0) {
       writeUUID(byteBuf, UUID.randomUUID());
-    }
 
-    if (protocolVersion.compareTo(MINECRAFT_1_14) >= 0) {
-      writeVarInt(byteBuf, entityType);
-    } else {
-      byteBuf.writeByte(entityType);
-    }
+      if (protocolVersion.compareTo(MINECRAFT_1_14) >= 0) {
+        writeVarInt(byteBuf, entityType.getId(protocolVersion));
+      } else {
+        byteBuf.writeByte(entityType.getId(protocolVersion));
+      }
 
-    if (v1_9orHigher) {
       byteBuf.writeDouble(x);
       byteBuf.writeDouble(y);
       byteBuf.writeDouble(z);
     } else {
+      byteBuf.writeByte(entityType.getId(protocolVersion));
       byteBuf.writeInt(floor(x * 32D));
       byteBuf.writeInt(floor(y * 32D));
       byteBuf.writeInt(floor(z * 32D));
     }
 
-    byteBuf.writeByte(0); // pitch or yaw
-    byteBuf.writeByte(0); // yaw or pitch
+    byteBuf.writeByte((int) (pitch * (256f / 360f)));
+    byteBuf.writeByte((int) (yaw * (256f / 360f)));
 
-    if (protocolVersion.compareTo(MINECRAFT_1_19) >= 0) {
-      byteBuf.writeByte(0); // head yaw
-      writeVarInt(byteBuf, 0); // data
+    if (protocolVersion.compareTo(MINECRAFT_1_18_2) > 0) {
+      byteBuf.writeByte((int) (headYaw * (256f / 360f)));
+      writeVarInt(byteBuf, data);
     } else {
-      byteBuf.writeInt(0); // data
+      byteBuf.writeInt(data);
     }
 
-    if (v1_9orHigher) {
-      byteBuf.writeShort(0); // velocity X
-      byteBuf.writeShort(0); // velocity Y
-      byteBuf.writeShort(0); // velocity Z
-    }
+    byteBuf.writeShort((int) (velocityX * 8000f));
+    byteBuf.writeShort((int) (velocityY * 8000f));
+    byteBuf.writeShort((int) (velocityZ * 8000f));
   }
 
   private static int floor(final double value) {

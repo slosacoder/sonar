@@ -72,7 +72,7 @@ public final class Fallback {
   }
 
   public boolean shouldPerformCaptcha() {
-    return shouldPerform(Sonar.get().getConfig().getVerification().getMap().getTiming());
+    return shouldPerform(Sonar.get().getConfig().getVerification().getMapCaptcha().getTiming());
   }
 
   public boolean shouldPerformVehicleCheck() {

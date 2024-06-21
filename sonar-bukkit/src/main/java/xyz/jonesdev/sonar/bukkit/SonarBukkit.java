@@ -91,7 +91,7 @@ public final class SonarBukkit extends SonarBootstrap<SonarBukkitPlugin> {
     metrics.addCustomChart(new SimplePie("verification",
       () -> getConfig().getVerification().getTiming().getDisplayName()));
     metrics.addCustomChart(new SimplePie("captcha",
-      () -> getConfig().getVerification().getMap().getTiming().getDisplayName()));
+      () -> getConfig().getVerification().getMapCaptcha().getTiming().getDisplayName()));
 
     // Register Sonar command
     Objects.requireNonNull(getPlugin().getCommand("sonar")).setExecutor(new BukkitSonarCommand());

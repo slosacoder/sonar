@@ -31,49 +31,51 @@ import static xyz.jonesdev.sonar.common.util.ProtocolUtil.writeVarInt;
 @NoArgsConstructor
 @AllArgsConstructor
 public final class MapDataPacket implements FallbackPacket {
+  private int mapId, x, y, scaling, rows, columns;
   private int[] buffer;
-  private int x, y;
 
+  // https://wiki.vg/Protocol#Map_Data
   @Override
   public void encode(final @NotNull ByteBuf byteBuf, final @NotNull ProtocolVersion protocolVersion) {
-    writeVarInt(byteBuf, 0);
+    writeVarInt(byteBuf, mapId);
 
     if (protocolVersion.compareTo(ProtocolVersion.MINECRAFT_1_8) < 0) {
       byteBuf.writeShort(buffer.length + 3);
-      byteBuf.writeByte(0); // scaling
-      byteBuf.writeByte(x);
-      byteBuf.writeByte(y);
-      writeArray(byteBuf, buffer);
-    } else {
-      byteBuf.writeByte(0); // scaling
-
-      if (protocolVersion.compareTo(ProtocolVersion.MINECRAFT_1_9) >= 0
-        && protocolVersion.compareTo(ProtocolVersion.MINECRAFT_1_17) < 0) {
-        byteBuf.writeBoolean(false);
-      }
-
-      if (protocolVersion.compareTo(ProtocolVersion.MINECRAFT_1_14) >= 0) {
-        byteBuf.writeBoolean(false);
-      }
-
-      if (protocolVersion.compareTo(ProtocolVersion.MINECRAFT_1_17) >= 0) {
-        byteBuf.writeBoolean(false);
-      } else {
-        writeVarInt(byteBuf, 0);
-      }
-
-      byteBuf.writeByte(128); // rows
-      byteBuf.writeByte(128); // columns
+      byteBuf.writeByte(scaling);
       byteBuf.writeByte(x);
       byteBuf.writeByte(y);
 
-      writeVarInt(byteBuf, buffer.length);
-      writeArray(byteBuf, buffer);
+      for (final int i : buffer) {
+        byteBuf.writeByte(i);
+      }
+      return;
     }
-  }
 
-  private static void writeArray(final ByteBuf byteBuf, final int @NotNull [] array) {
-    for (final int i : array) {
+    byteBuf.writeByte(scaling);
+
+    if (protocolVersion.compareTo(ProtocolVersion.MINECRAFT_1_9) >= 0
+      && protocolVersion.compareTo(ProtocolVersion.MINECRAFT_1_17) < 0) {
+      byteBuf.writeBoolean(false);
+    }
+
+    if (protocolVersion.compareTo(ProtocolVersion.MINECRAFT_1_14) >= 0) {
+      byteBuf.writeBoolean(false);
+    }
+
+    if (protocolVersion.compareTo(ProtocolVersion.MINECRAFT_1_17) >= 0) {
+      byteBuf.writeBoolean(false);
+    } else {
+      writeVarInt(byteBuf, 0);
+    }
+
+    byteBuf.writeByte(rows);
+    byteBuf.writeByte(columns);
+    byteBuf.writeByte(x);
+    byteBuf.writeByte(y);
+
+    writeVarInt(byteBuf, buffer.length);
+
+    for (final int i : buffer) {
       byteBuf.writeByte(i);
     }
   }

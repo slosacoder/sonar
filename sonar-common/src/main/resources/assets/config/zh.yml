@@ -105,6 +105,11 @@ verification:
       # - DURING_ATTACK: 仅在疑似遭受攻击时应用该检查
       # - NEVER: 永远不应用该检查
       timing: NEVER
+      # How should Sonar display the map to the player?
+      # Possible types: HAND, PUZZLE
+      # - HAND: New players will get the CAPTCHA as an item in their hand (Recommended)
+      # - PUZZLE: New players will have to click on the missing puzzle piece on item frames
+      type: HAND
       # 图像效果选项 (用于混淆自动图像识别)
       # 只有当您知道您在做什么时, 才应该编辑它.
       effects:

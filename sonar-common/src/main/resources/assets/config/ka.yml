@@ -107,6 +107,11 @@ verification:
       # - DURING_ATTACK: ახალი მოთამაშებს მოუწევთ CAPTCHA-ს გაკეთება მხოლოდ შეტევის დროს
       # - NEVER: ახალ მოთამაშეებს არასდროს მოუწევთ CAPTCHA-ს გაკეთება (Recommended)
       timing: NEVER
+      # How should Sonar display the map to the player?
+      # Possible types: HAND, PUZZLE
+      # - HAND: New players will get the CAPTCHA as an item in their hand (Recommended)
+      # - PUZZLE: New players will have to click on the missing puzzle piece on item frames
+      type: HAND
       # ეფექტების პარამეტრები გამოსახულებაზე, რომელიც აჩვენა მოთამაშეს
       # თქვენ უნდა შეცვალოთ ეს მხოლოდ იმ შემთხვევაში, თუ იცით, რას აკეთებთ
       effects:

@@ -18,6 +18,8 @@
 package xyz.jonesdev.sonar.common.fallback.protocol;
 
 import lombok.experimental.UtilityClass;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.IntBinaryTag;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import xyz.jonesdev.sonar.api.Sonar;
@@ -25,7 +27,10 @@ import xyz.jonesdev.sonar.api.config.SonarConfiguration;
 import xyz.jonesdev.sonar.common.fallback.protocol.block.BlockType;
 import xyz.jonesdev.sonar.common.fallback.protocol.block.BlockUpdate;
 import xyz.jonesdev.sonar.common.fallback.protocol.captcha.CaptchaPreparer;
+import xyz.jonesdev.sonar.common.fallback.protocol.captcha.ItemType;
 import xyz.jonesdev.sonar.common.fallback.protocol.dimension.DimensionRegistry;
+import xyz.jonesdev.sonar.common.fallback.protocol.entity.EntityType;
+import xyz.jonesdev.sonar.common.fallback.protocol.metadata.MetadataSlotEntry;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.configuration.FinishConfigurationPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.configuration.RegistryDataPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.login.LoginSuccessPacket;
@@ -86,27 +91,74 @@ public class FallbackPreparer {
 
   // Vehicle
   public FallbackPacket removeEntities;
+  public static FallbackPacket spawnEntity;
   public static FallbackPacket setPassengers;
   public static final int VEHICLE_ENTITY_ID = PLAYER_ENTITY_ID + 1;
 
-  // Collisions
   public final int BLOCKS_PER_ROW = 8; // 8 * 8 = 64 (protocol maximum)
   public final int SPAWN_X_POSITION = 16 / 2; // middle of the chunk
   public final int SPAWN_Z_POSITION = 16 / 2; // middle of the chunk
   public final int DEFAULT_Y_COLLIDE_POSITION = 255; // 255 is the maximum Y position allowed
+  public final double CAPTCHA_Y_POSITION = 1337;
+  public final BlockType BLOCK_TYPE = BlockType.BARRIER;
 
-  // Captcha position
   public final FallbackPacket CAPTCHA_POSITION = new FallbackPacketSnapshot(new SetPlayerPositionRotation(
-    SPAWN_X_POSITION, 1337, SPAWN_Z_POSITION, 0f, 90f, 0, false));
+    SPAWN_X_POSITION + 1.5, CAPTCHA_Y_POSITION - 0.5, SPAWN_Z_POSITION,
+    0f, 45f, 0, false));
+  public final FallbackPacket FRAMED_CAPTCHA_POSITION = new FallbackPacketSnapshot(new SetPlayerPositionRotation(
+    SPAWN_X_POSITION + 1.5, CAPTCHA_Y_POSITION - 0.5, SPAWN_Z_POSITION,
+    0f, 0f, 0, false));
+  public final FallbackPacket[] CAPTCHA_ITEM_FRAMES;
 
-  // Platform
-  public BlockType blockType = BlockType.BARRIER;
+  private final CompoundBinaryTag MAP_NBT = CompoundBinaryTag.builder()
+    .put("map", IntBinaryTag.intBinaryTag(0))
+    .build();
+  public final FallbackPacket CAPTCHA_SET_SLOT_BEDROCK = new FallbackPacketSnapshot(new SetContainerSlotPacket(
+    36, 0, 0, new MetadataSlotEntry(1, 0, ItemType.FILLED_MAP, MAP_NBT)));
+  public final FallbackPacket CAPTCHA_SET_SLOT = new FallbackPacketSnapshot(new SetContainerSlotPacket(
+    40, 0, 0, new MetadataSlotEntry(1, 0, ItemType.FILLED_MAP, MAP_NBT)));
+
   public int maxMovementTick, dynamicSpawnYPosition;
   public double[] preparedCachedYMotions;
   public double maxFallDistance;
 
-  // CAPTCHA
-  public final CaptchaPreparer MAP_INFO_PREPARER = new CaptchaPreparer();
+  static {
+    // Prepare puzzle CAPTCHA
+    {
+      final int xItemFrames = 3;
+      final int yItemFrames = 2;
+      CAPTCHA_ITEM_FRAMES = new FallbackPacket[xItemFrames * yItemFrames];
+
+      int index = 0;
+      for (int x = 0; x < xItemFrames; x++) {
+        for (int y = 0; y < yItemFrames; y++) {
+          CAPTCHA_ITEM_FRAMES[index++] = new FallbackPacketSnapshot(new SpawnEntityPacket(
+            VEHICLE_ENTITY_ID + index, 2, EntityType.ITEM_FRAME,
+            SPAWN_X_POSITION + x, CAPTCHA_Y_POSITION + y, SPAWN_Z_POSITION + 2,
+            0, 0, 0, 0, 0, 0));
+        }
+      }
+    }
+
+    // Prepare collision platform positions
+    {
+      final BlockUpdate[] changedBlocks = new BlockUpdate[BLOCKS_PER_ROW * BLOCKS_PER_ROW];
+
+      int index = 0;
+      for (int x = 0; x < BLOCKS_PER_ROW; x++) {
+        for (int z = 0; z < BLOCKS_PER_ROW; z++) {
+          final BlockUpdate.BlockPosition position = new BlockUpdate.BlockPosition(
+            x + (BLOCKS_PER_ROW / 2),
+            DEFAULT_Y_COLLIDE_POSITION,
+            z + (BLOCKS_PER_ROW / 2),
+            0, 0);
+          changedBlocks[index++] = new BlockUpdate(position, BLOCK_TYPE);
+        }
+      }
+
+      updateSectionBlocks = new FallbackPacketSnapshot(new UpdateSectionBlocksPacket(0, 0, changedBlocks));
+    }
+  }
 
   // XP packets
   public FallbackPacket[] xpCountdown;
@@ -143,23 +195,6 @@ public class FallbackPreparer {
       SPAWN_X_POSITION, dynamicSpawnYPosition, SPAWN_Z_POSITION,
       0, -90, TELEPORT_ID, false));
 
-    // Prepare collision platform positions
-    final BlockUpdate[] changedBlocks = new BlockUpdate[BLOCKS_PER_ROW * BLOCKS_PER_ROW];
-
-    int index = 0;
-    for (int x = 0; x < BLOCKS_PER_ROW; x++) {
-      for (int z = 0; z < BLOCKS_PER_ROW; z++) {
-        final BlockUpdate.BlockPosition position = new BlockUpdate.BlockPosition(
-          x + (BLOCKS_PER_ROW / 2),
-          DEFAULT_Y_COLLIDE_POSITION,
-          z + (BLOCKS_PER_ROW / 2),
-          0, 0);
-        changedBlocks[index++] = new BlockUpdate(position, blockType);
-      }
-    }
-
-    updateSectionBlocks = new FallbackPacketSnapshot(new UpdateSectionBlocksPacket(0, 0, changedBlocks));
-
     // Prepare disconnect packets during login
     blacklisted = new FallbackPacketSnapshot(DisconnectPacket.create(Sonar.get().getConfig().getVerification().getBlacklisted(), true));
     alreadyVerifying = new FallbackPacketSnapshot(DisconnectPacket.create(Sonar.get().getConfig().getVerification().getAlreadyVerifying(), true));
@@ -180,9 +215,12 @@ public class FallbackPreparer {
 
     // Prepare packets for the vehicle check
     removeEntities = new FallbackPacketSnapshot(new RemoveEntitiesPacket(VEHICLE_ENTITY_ID));
+    spawnEntity = new FallbackPacketSnapshot(new SpawnEntityPacket(VEHICLE_ENTITY_ID, 0, EntityType.BOAT,
+      SPAWN_X_POSITION, DEFAULT_Y_COLLIDE_POSITION, SPAWN_Z_POSITION,
+      0, 0, 0, 0, 0, 0));
     setPassengers = new FallbackPacketSnapshot(new SetPassengersPacket(VEHICLE_ENTITY_ID, PLAYER_ENTITY_ID));
 
-    if (Sonar.get().getConfig().getVerification().getMap().getTiming() != SonarConfiguration.Verification.Timing.NEVER
+    if (Sonar.get().getConfig().getVerification().getMapCaptcha().getTiming() != SonarConfiguration.Verification.Timing.NEVER
       || Sonar.get().getConfig().getVerification().getGravity().isCaptchaOnFail()) {
       // Prepare CAPTCHA messages
       enterCodeMessage = new FallbackPacketSnapshot(new SystemChatPacket(new ComponentHolder(
@@ -195,7 +233,7 @@ public class FallbackPreparer {
           Placeholder.component("prefix", Sonar.get().getConfig().getPrefix())))));
 
       // Prepare countdown
-      xpCountdown = new FallbackPacket[Sonar.get().getConfig().getVerification().getMap().getMaxDuration() / 1000];
+      xpCountdown = new FallbackPacket[Sonar.get().getConfig().getVerification().getMapCaptcha().getMaxDuration() / 1000];
 
       for (int i = 0; i < xpCountdown.length; i++) {
         final float bar = (float) i / xpCountdown.length;
@@ -203,7 +241,7 @@ public class FallbackPreparer {
       }
 
       // Prepare CAPTCHA answers
-      MAP_INFO_PREPARER.prepare();
+      CaptchaPreparer.prepare();
     } else {
       // Throw away if not needed
       enterCodeMessage = null;

@@ -17,6 +17,7 @@
 
 package xyz.jonesdev.sonar.common.fallback.protocol.captcha;
 
+import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Nullable;
 import xyz.jonesdev.capja.SimpleCaptchaGenerator;
 import xyz.jonesdev.capja.filter.SimpleRippleFilter;
@@ -38,9 +39,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
-public final class CaptchaPreparer {
-  private static final ExecutorService PREPARATION_SERVICE = Executors.newSingleThreadExecutor();
-  private static final Random RANDOM = new Random();
+@UtilityClass
+public class CaptchaPreparer {
+  private final ExecutorService PREPARATION_SERVICE = Executors.newSingleThreadExecutor();
+  private final Random RANDOM = new Random();
 
   private MapCaptchaInfo[] cached;
   private int preparedAmount;
@@ -55,22 +57,22 @@ public final class CaptchaPreparer {
     Sonar.get().getLogger().info("Players will be able to join even if the preparation isn't finished");
 
     // Prepare cache
-    final SonarConfiguration.Verification.Map config = Sonar.get().getConfig().getVerification().getMap();
+    final SonarConfiguration.Verification.MapCaptcha config = Sonar.get().getConfig().getVerification().getMapCaptcha();
     cached = new MapCaptchaInfo[config.getPrecomputeAmount()];
 
     // Prepare everything asynchronously
     PREPARATION_SERVICE.execute(() -> {
       // Create the images using capja
-      final @Nullable File backgroundImage = Sonar.get().getConfig().getVerification().getMap().getBackgroundImage();
+      final @Nullable File backgroundImage = Sonar.get().getConfig().getVerification().getMapCaptcha().getBackgroundImage();
       final SimpleCaptchaGenerator generator = new SimpleCaptchaGenerator(128, 128, backgroundImage);
       final char[] dictionary = config.getDictionary().toCharArray();
 
       // Prepare the filters for the CAPTCHA
       final List<AbstractBufferedImageOp> filters = new ArrayList<>();
-      if (Sonar.get().getConfig().getVerification().getMap().isScratches()) {
+      if (Sonar.get().getConfig().getVerification().getMapCaptcha().isScratches()) {
         filters.add(new SimpleScratchFilter(5));
       }
-      if (Sonar.get().getConfig().getVerification().getMap().isRipple()) {
+      if (Sonar.get().getConfig().getVerification().getMapCaptcha().isRipple()) {
         final SimpleRippleFilter rippleFilter = new SimpleRippleFilter();
         rippleFilter.setXAmplitude(0);
         float yAmplitude = 10 - ThreadLocalRandom.current().nextInt(20);
@@ -80,20 +82,20 @@ public final class CaptchaPreparer {
         rippleFilter.setYAmplitude(yAmplitude);
         filters.add(rippleFilter);
       }
-      if (Sonar.get().getConfig().getVerification().getMap().getDistortion().isEnabled()) {
+      if (Sonar.get().getConfig().getVerification().getMapCaptcha().getDistortion().isEnabled()) {
         final SmearFilter smearFilter = new SmearFilter();
-        smearFilter.setShape(Sonar.get().getConfig().getVerification().getMap().getDistortion().getShape());
-        smearFilter.setMix(Sonar.get().getConfig().getVerification().getMap().getDistortion().getMix());
-        smearFilter.setDensity(Sonar.get().getConfig().getVerification().getMap().getDistortion().getDensity());
-        smearFilter.setDistance(Sonar.get().getConfig().getVerification().getMap().getDistortion().getDistance());
+        smearFilter.setShape(Sonar.get().getConfig().getVerification().getMapCaptcha().getDistortion().getShape());
+        smearFilter.setMix(Sonar.get().getConfig().getVerification().getMapCaptcha().getDistortion().getMix());
+        smearFilter.setDensity(Sonar.get().getConfig().getVerification().getMapCaptcha().getDistortion().getDensity());
+        smearFilter.setDistance(Sonar.get().getConfig().getVerification().getMapCaptcha().getDistortion().getDistance());
         filters.add(smearFilter);
       }
-      if (Sonar.get().getConfig().getVerification().getMap().isBump()) {
+      if (Sonar.get().getConfig().getVerification().getMapCaptcha().isBump()) {
         filters.add(new BumpFilter());
       }
 
       for (preparedAmount = 0; preparedAmount < config.getPrecomputeAmount(); preparedAmount++) {
-        if (!Sonar.get().getConfig().getVerification().getMap().isAutoColor()) {
+        if (!Sonar.get().getConfig().getVerification().getMapCaptcha().isAutoColor()) {
           // Generate a random gradient color if automatic coloring is disabled
           final Color color0 = Color.getHSBColor((float) Math.random(), 1, 1);
           final Color color1 = Color.getHSBColor((float) Math.random(), 1, 0.5f);
@@ -109,7 +111,7 @@ public final class CaptchaPreparer {
         final BufferedImage image = generator.createImage(answer, filters);
         // Convert and cache converted Minecraft map bytes
         final int[] buffer = MapColorPalette.getBufferFromImage(image);
-        cached[preparedAmount] = new MapCaptchaInfo(new String(answer), buffer);
+        cached[preparedAmount] = new MapCaptchaInfo(image.getWidth(), image.getHeight(), new String(answer), buffer);
       }
 
       Sonar.get().getLogger().info("Finished preparing {} CAPTCHA answers ({}s)!", preparedAmount, timer);

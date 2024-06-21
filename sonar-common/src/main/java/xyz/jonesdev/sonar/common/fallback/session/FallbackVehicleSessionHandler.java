@@ -22,11 +22,11 @@ import xyz.jonesdev.sonar.api.Sonar;
 import xyz.jonesdev.sonar.api.fallback.FallbackUser;
 import xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacketDecoder;
-import xyz.jonesdev.sonar.common.fallback.protocol.entity.EntityType;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.PaddleBoatPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.PlayerInputPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.SetPassengersPacket;
 import xyz.jonesdev.sonar.common.fallback.protocol.packets.play.SpawnEntityPacket;
+import xyz.jonesdev.sonar.common.fallback.session.captcha.FallbackCaptchaSessionHandler;
 
 import java.util.UUID;
 
@@ -57,9 +57,7 @@ public final class FallbackVehicleSessionHandler extends FallbackSessionHandler 
     this.forceCAPTCHA = forceCAPTCHA;
 
     // Send the necessary packets to mount the player on the vehicle
-    final int entityTypeId = EntityType.BOAT.getId(user.getProtocolVersion());
-    user.delayedWrite(new SpawnEntityPacket(VEHICLE_ENTITY_ID, entityTypeId,
-      SPAWN_X_POSITION, DEFAULT_Y_COLLIDE_POSITION, SPAWN_Z_POSITION));
+    user.delayedWrite(spawnEntity);
     user.delayedWrite(setPassengers);
     user.getChannel().flush();
   }
@@ -75,7 +73,7 @@ public final class FallbackVehicleSessionHandler extends FallbackSessionHandler 
       // Either send the player to the CAPTCHA, or finish the verification.
       final var decoder = (FallbackPacketDecoder) user.getPipeline().get(FallbackPacketDecoder.class);
       // Send the player to the CAPTCHA handler
-      decoder.setListener(new FallbackCAPTCHASessionHandler(user, username, uuid));
+      decoder.setListener(FallbackCaptchaSessionHandler.getPreferred(user, username, uuid));
     } else {
       // The player has passed all checks
       finishVerification();

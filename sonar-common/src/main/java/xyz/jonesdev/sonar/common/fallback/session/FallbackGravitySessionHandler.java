@@ -223,7 +223,7 @@ public final class FallbackGravitySessionHandler extends FallbackSessionHandler 
         user.fail("illegal collision tick: " + movementTick);
       }
       // Calculate the difference between the player's Y coordinate and the expected Y coordinate
-      double collisionOffsetY = (DEFAULT_Y_COLLIDE_POSITION + blockType.getBlockHeight()) - y;
+      double collisionOffsetY = (DEFAULT_Y_COLLIDE_POSITION + BLOCK_TYPE.getBlockHeight()) - y;
       // 1.7 sends the head position instead of the AABB minY
       // This little hack accounts for the offset of approximately 1.62
       if (user.getProtocolVersion().compareTo(MINECRAFT_1_8) < 0) {

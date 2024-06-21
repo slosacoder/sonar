@@ -107,6 +107,11 @@ verification:
       # - DURING_ATTACK: New players will only receive a CAPTCHA during an attack
       # - NEVER: New players will never receive a CAPTCHA (Recommended)
       timing: NEVER
+      # How should Sonar display the map to the player?
+      # Possible types: HAND, PUZZLE
+      # - HAND: New players will get the CAPTCHA as an item in their hand (Recommended)
+      # - PUZZLE: New players will have to click on the missing puzzle piece on item frames
+      type: HAND
       # Options for the effects on the image shown to the player
       # You should only edit this if you know what you're doing
       effects:

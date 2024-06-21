@@ -22,80 +22,33 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.IntBinaryTag;
 import org.jetbrains.annotations.NotNull;
 import xyz.jonesdev.sonar.api.fallback.protocol.ProtocolVersion;
 import xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacket;
+import xyz.jonesdev.sonar.common.fallback.protocol.metadata.MetadataSlotEntry;
 
-import static xyz.jonesdev.sonar.api.fallback.protocol.ProtocolVersion.*;
-import static xyz.jonesdev.sonar.common.util.ProtocolUtil.*;
+import static xyz.jonesdev.sonar.api.fallback.protocol.ProtocolVersion.MINECRAFT_1_17_1;
+import static xyz.jonesdev.sonar.common.util.ProtocolUtil.writeVarInt;
 
 @Getter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public final class SetContainerSlotPacket implements FallbackPacket {
-  private int slot, count, itemId;
-  private CompoundBinaryTag compoundBinaryTag;
+  private int slot, windowId, stateId;
+  private MetadataSlotEntry slotData;
 
-  public static final CompoundBinaryTag MAP_NBT = CompoundBinaryTag.builder()
-    .put("map", IntBinaryTag.intBinaryTag(0)) // map type
-    .build();
-
+  // https://wiki.vg/Protocol#Set_Container_Slot
   @Override
   public void encode(final @NotNull ByteBuf byteBuf, final @NotNull ProtocolVersion protocolVersion) throws Exception {
-    byteBuf.writeByte(0); // windowId
+    byteBuf.writeByte(windowId);
 
     if (protocolVersion.compareTo(MINECRAFT_1_17_1) >= 0) {
-      writeVarInt(byteBuf, 0);
+      writeVarInt(byteBuf, stateId);
     }
 
     byteBuf.writeShort(slot);
-
-    if (protocolVersion.inBetween(MINECRAFT_1_13_2, MINECRAFT_1_20_3)) {
-      byteBuf.writeBoolean(true);
-    }
-
-    if (protocolVersion.compareTo(MINECRAFT_1_20_5) >= 0) {
-      writeVarInt(byteBuf, count);
-    }
-
-    if (protocolVersion.compareTo(MINECRAFT_1_13_2) < 0) {
-      byteBuf.writeShort(itemId);
-    } else {
-      writeVarInt(byteBuf, itemId);
-    }
-
-    if (protocolVersion.compareTo(MINECRAFT_1_20_5) < 0) {
-      byteBuf.writeByte(count);
-    }
-
-    if (protocolVersion.compareTo(MINECRAFT_1_13) < 0) {
-      byteBuf.writeShort(0); // data
-    }
-
-    if (protocolVersion.compareTo(MINECRAFT_1_17) < 0) {
-      if (protocolVersion.compareTo(MINECRAFT_1_8) < 0) {
-        byteBuf.writeShort(-1);
-      } else {
-        byteBuf.writeByte(0);
-      }
-    } else {
-      if (protocolVersion.compareTo(MINECRAFT_1_20_2) < 0) {
-        writeCompoundTag(byteBuf, compoundBinaryTag);
-      } else if (protocolVersion.compareTo(MINECRAFT_1_20_5) < 0) {
-        writeNamelessCompoundTag(byteBuf, compoundBinaryTag);
-      } else { // 1.20.5
-        // TODO: find a way to improve this
-        // component
-        writeVarInt(byteBuf, 1); // component count to add
-        writeVarInt(byteBuf, 0); // component count to remove
-        // single VarInt component
-        writeVarInt(byteBuf, 26); // map component
-        writeVarInt(byteBuf, 0); // map id
-      }
-    }
+    slotData.encode(byteBuf, protocolVersion);
   }
 
   @Override
