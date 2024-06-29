@@ -53,7 +53,7 @@ import static xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacketRegistry
 import static xyz.jonesdev.sonar.common.fallback.protocol.FallbackPacketRegistry.GAME;
 
 @Getter
-@ToString(of = {"protocolVersion", "inetAddress"})
+@ToString(of = {"protocolVersion", "inetAddress", "geyser"})
 public final class FallbackUserWrapper implements FallbackUser {
   private final Channel channel;
   private final ChannelPipeline pipeline;
@@ -78,7 +78,9 @@ public final class FallbackUserWrapper implements FallbackUser {
   }
 
   @Override
-  public void disconnect(final @NotNull Component reason, final boolean duringLogin) {
+  public void disconnect(final @NotNull Component reason) {
+    final FallbackPacketEncoder encoder = pipeline.get(FallbackPacketEncoder.class);
+    final boolean duringLogin = encoder != null && encoder.getPacketRegistry() != GAME;
     closeWith(channel, protocolVersion, DisconnectPacket.create(reason, duringLogin));
   }
 
@@ -131,23 +133,17 @@ public final class FallbackUserWrapper implements FallbackUser {
       // The LoginSuccess packet has been sent, now we can change the registry state
       newEncoder.updateRegistry(protocolVersion.compareTo(MINECRAFT_1_20_2) >= 0 ? CONFIG : GAME);
 
-      try {
-        // Replace normal decoder to allow custom packets
-        final FallbackPacketDecoder fallbackPacketDecoder = new FallbackPacketDecoder(protocolVersion);
-        pipeline.replace(decoder, FALLBACK_PACKET_DECODER, fallbackPacketDecoder);
-        // Listen for all incoming packets by setting the packet listener
-        fallbackPacketDecoder.setListener(new FallbackLoginSessionHandler(this, username, uuid));
-      } catch (Throwable throwable) {
-        // This rarely happens when the channel hangs and the player is still connecting
-        // I honestly have no idea how else I'm supposed to fix this
-        channel.close();
-      }
+      // Replace normal decoder to allow custom packets
+      final FallbackPacketDecoder fallbackPacketDecoder = new FallbackPacketDecoder(protocolVersion);
+      pipeline.replace(decoder, FALLBACK_PACKET_DECODER, fallbackPacketDecoder);
+      // Listen for all incoming packets by setting the packet listener
+      fallbackPacketDecoder.setListener(new FallbackLoginSessionHandler(this, username, uuid));
     });
   }
 
   @Override
   public void fail(final @NotNull String reason) {
-    disconnect(Sonar.get().getConfig().getVerification().getVerificationFailed(), false);
+    disconnect(Sonar.get().getConfig().getVerification().getVerificationFailed());
 
     // Only log the failed message if the server isn't currently under attack.
     // However, we let the user override this through the configuration.
