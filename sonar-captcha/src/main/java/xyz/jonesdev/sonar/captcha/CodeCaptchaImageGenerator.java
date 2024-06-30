@@ -17,11 +17,13 @@
 
 package xyz.jonesdev.sonar.captcha;
 
-import com.jhlabs.image.AbstractBufferedImageOp;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.jonesdev.sonar.captcha.imagefilters.CircleInverseFilter;
+import xyz.jonesdev.sonar.captcha.imagefilters.RippleFilter;
+import xyz.jonesdev.sonar.captcha.imagefilters.ScratchOverlayFilter;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -29,105 +31,122 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.List;
+import java.util.Random;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 @Getter
 @Setter
 public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
-  private GradientPaint gradient;
+  private static final Random RANDOM = new Random();
 
   public CodeCaptchaImageGenerator(final int width, final int height, final @Nullable File backgroundImage) {
     super(width, height, backgroundImage);
+
+    this.font = loadFontFromFile("/assets/fonts/Delius-Regular.ttf");
+    final Color[] colors = new Color[] {Color.RED, Color.BLUE, Color.CYAN, Color.ORANGE, Color.GREEN, Color.MAGENTA};
+    this.possibleGradients = new GradientPaint[colors.length * colors.length];
+    for (int i = 0; i < possibleGradients.length; i++) {
+      final Color color0 = colors[i % colors.length];
+      final Color color1 = colors[(i + 1) % colors.length];
+      possibleGradients[i] = new GradientPaint(0, 0, color0, width, height, color1);
+    }
   }
 
-  public @NotNull BufferedImage createImage(final char[] answer,
-                                            final @NotNull List<AbstractBufferedImageOp> filters) {
-    // Make sure we have a background image cached/generated
+  private final GradientPaint[] possibleGradients;
+
+  private final float scaleModifier = height / (128f / 2.5f);
+  private final Font font;
+
+  public @NotNull BufferedImage createImage(final char[] answer) {
     createBackgroundImage();
     // Create a new foreground image for the text
-    BufferedImage foreground = new BufferedImage(width, height, TYPE_INT_ARGB);
-    final Graphics2D graphics = foreground.createGraphics();
-
-    final FontRenderContext ctx = graphics.getFontRenderContext();
-    // Change some rendering hints for anti aliasing
+    BufferedImage foregroundImage = new BufferedImage(width, height, TYPE_INT_ARGB);
+    final Graphics2D graphics = foregroundImage.createGraphics();
+    // Change some rendering hits to optimize the image generation
     graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    // Draw characters
-    drawCharacters(graphics, ctx, answer);
+
+    // Draw the text characters onto the foreground image
+    drawCharacters(graphics, answer);
+
     // Make sure to dispose the graphics after using it
     graphics.dispose();
 
-    // Apply any given filter to the foreground
-    for (final AbstractBufferedImageOp bufferedImageOp : filters) {
-      foreground = bufferedImageOp.filter(foreground, null);
-    }
+    // Apply a scratch filter for adding random lines on the image
+    new ScratchOverlayFilter(4, 1).transform(foregroundImage);
+    new RippleFilter(2, 2).transform(foregroundImage);
 
-    return mergeImages(background, foreground);
+    // Create a noisy background image
+    BufferedImage mergedImage = mergeImages(background, foregroundImage);
+
+    // Draw random inverse-color circles on the merged image
+    final int circleAmount = 2 + RANDOM.nextInt(2);
+    final int minCircleRadius = (int) Math.floor(10 * scaleModifier);
+    new CircleInverseFilter(circleAmount, minCircleRadius, minCircleRadius).transform(mergedImage);
+
+    return mergedImage;
   }
 
-  private void drawCharacters(final @NotNull Graphics2D graphics,
-                              final @NotNull FontRenderContext ctx,
-                              final char[] answer) {
-    // Create font render context
-    final int fontSize = 58 + RANDOM.nextInt(5); // 58 to 62
-    final Font font = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
+  private void drawCharacters(final @NotNull Graphics2D graphics, final char[] answer) {
+    final FontRenderContext ctx = graphics.getFontRenderContext();
 
-    // Calculate string width
-    final double stringWidth = font.getStringBounds(answer, 0, answer.length, ctx).getWidth();
-    final double averageCharacterWidth = stringWidth / answer.length / 1.5;
-    // Calculate character positions
-    int beginX = (int) ((width - stringWidth) / 2 + averageCharacterWidth);
-    final int beginY = (height + (fontSize / 2)) / 2;
-    double rotation = 0;
+    // Get the start X and Y positions
+    final GlyphVector textGlyphVector = font.createGlyphVector(ctx, answer);
+    final Rectangle textGlyphBounds = textGlyphVector.getOutline().getBounds();
+    int glyphX = (width - textGlyphBounds.width) / 2 + textGlyphBounds.width / answer.length / 3;
+    int glyphY = (height - textGlyphBounds.height) / 2 + textGlyphBounds.height;
 
-    if (gradient != null) {
-      graphics.setPaint(gradient);
-    }
+    // Apply a gradient effect on all characters
+    graphics.setPaint(possibleGradients[RANDOM.nextInt(possibleGradients.length)]);
 
-    // Draw each character one by one
     for (final char character : answer) {
-      if (gradient == null) {
-        // Use the inverse color by checking the background image
-        // Then, create a gradient for the text by using the colors
-        final int x0 = Math.min(Math.max(beginX + 5 /* small threshold */, 0), width);
-        final int x1 = Math.min(Math.max(beginX + (int) averageCharacterWidth, 0), width);
-        final int y = beginY + fontSize / 2;
-        final Color color0 = new Color(~background.getRGB(x0, y));
-        final Color color1 = new Color(~background.getRGB(x1, y));
-        final GradientPaint gradient = new GradientPaint(0, 0, color0, width, height, color1);
-        graphics.setPaint(gradient);
+      // Create a glyph vector for the character
+      final GlyphVector glyphVector = font.createGlyphVector(ctx, new char[] {character});
+      final Shape glyphShape = glyphVector.getOutline();
+      final Rectangle glyphBounds = glyphShape.getBounds();
+
+      // Apply a transformation to the glyph vector using AffineTransform
+      final AffineTransform transformation = AffineTransform.getTranslateInstance(glyphX, glyphY);
+      // Randomize character scale
+      final double scaling = 1 + 0.2 * RANDOM.nextDouble();
+      transformation.scale(scaling, scaling);
+
+      // Draw the transformed character glyph shape
+      final Shape transformedShape = transformation.createTransformedShape(glyphShape);
+      // 40% chance that the text will be stroked
+      if (RANDOM.nextInt(100) <= 40) {
+        final float strokeWidth = 2 + scaleModifier * RANDOM.nextFloat();
+        final Stroke stroke = new BasicStroke(strokeWidth);
+        final Shape strokedTransformedShape = stroke.createStrokedShape(transformedShape);
+        graphics.fill(strokedTransformedShape);
+      } else {
+        graphics.fill(transformedShape);
+        // 90% chance that the text will have an outline
+        if (RANDOM.nextInt(100) <= 90) {
+          // Add an outline to the transformed character
+          addCharacterOutline(graphics, transformedShape);
+        }
       }
 
-      // Create a glyph vector for the character
-      final GlyphVector glyphVector = font.createGlyphVector(ctx, String.valueOf(character));
-      // Apply a transformation to the glyph vector using AffineTransform
-      final AffineTransform transformation = AffineTransform.getTranslateInstance(beginX, beginY);
-
-      // Add a bit of randomization to the rotation
-      rotation += Math.toRadians(6 - RANDOM.nextInt(12));
-      transformation.rotate(rotation);
-
-      // Draw the glyph to the buffered image
-      final Shape transformedShape = transformation.createTransformedShape(glyphVector.getOutline());
-      graphics.fill(transformedShape);
-      // Add text outline/shadow to confuse an AI's edge detection
-      addTextOutline(graphics, transformedShape);
-      // Update next X position
-      beginX += (int) averageCharacterWidth;
+      // Increment the X coordinate for the next character by the bounds
+      glyphX += glyphBounds.width;
+      glyphY += (int) Math.floor(Math.sin(glyphX * 180) * 5);
     }
   }
 
-  private static void addTextOutline(final @NotNull Graphics2D graphics,
-                                     final @NotNull Shape transformedShape) {
-    // Create a stroked copy of the text and slightly offset/distort it
-    final Shape strokedShape = new BasicStroke().createStrokedShape(transformedShape);
-
-    final double tx = 0.5 + RANDOM.nextDouble();
-    final double ty = 0.5 + RANDOM.nextDouble();
+  private void addCharacterOutline(final @NotNull Graphics2D graphics,
+                                   final @NotNull Shape transformedShape) {
+    final double minT = scaleModifier / 7.5D;
+    final double tx = minT + scaleModifier * RANDOM.nextDouble();
+    final double ty = minT + scaleModifier * RANDOM.nextDouble();
+    final float strokeWidth = scaleModifier * RANDOM.nextFloat();
 
     // Draw the stroked shape
     final AffineTransform transform = AffineTransform.getTranslateInstance(tx, ty);
+    // Create a stroked copy of the text and slightly offset/distort it
+    final Stroke stroke = new BasicStroke(strokeWidth);
+    final Shape strokedShape = stroke.createStrokedShape(transformedShape);
+    // Draw the character outline
     graphics.fill(transform.createTransformedShape(strokedShape));
   }
 }

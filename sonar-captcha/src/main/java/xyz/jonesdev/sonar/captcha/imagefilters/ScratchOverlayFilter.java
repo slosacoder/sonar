@@ -17,35 +17,28 @@
 
 package xyz.jonesdev.sonar.captcha.imagefilters;
 
-import com.jhlabs.image.AbstractBufferedImageOp;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Random;
 
+@Getter
 @RequiredArgsConstructor
-public final class SimpleScratchFilter extends AbstractBufferedImageOp {
-  private static final Random RANDOM = new Random();
-
-  private final int amount;
+public final class ScratchOverlayFilter extends ImageFilter {
+  private final int amount, lineWidth;
 
   @Override
-  public @NotNull BufferedImage filter(final @NotNull BufferedImage src, final BufferedImage dst) {
-    final Graphics2D graphics = src.createGraphics();
+  public void transform(final @NotNull BufferedImage bufferedImage) {
+    final Graphics2D graphics = bufferedImage.createGraphics();
+    final float halfWidth = bufferedImage.getWidth() * 0.5f;
 
-    // Apply some gradient effect on them
-    final Color color0 = Color.getHSBColor(RANDOM.nextFloat(), RANDOM.nextFloat(), 1);
-    final Color color1 = new Color(~color0.getRGB());
-    final GradientPaint gradient = new GradientPaint(0, 0, color0, src.getWidth(), src.getHeight(), color1);
-    graphics.setPaint(gradient);
-
-    final float halfWidth = src.getWidth() * 0.5f;
+    graphics.setStroke(new BasicStroke(lineWidth));
 
     for (int i = 0; i < amount; ++i) {
-      final float randomX = src.getWidth() * RANDOM.nextFloat();
-      final float randomY = src.getHeight() * RANDOM.nextFloat();
+      final float randomX = bufferedImage.getWidth() * RANDOM.nextFloat();
+      final float randomY = bufferedImage.getHeight() * RANDOM.nextFloat();
       final float amplitude = 6.2831855f * (RANDOM.nextFloat() - 0.5f);
       final float sin = (float) Math.sin(amplitude) * halfWidth;
       final float cos = (float) Math.cos(amplitude) * halfWidth;
@@ -57,6 +50,5 @@ public final class SimpleScratchFilter extends AbstractBufferedImageOp {
     }
 
     graphics.dispose();
-    return src;
   }
 }

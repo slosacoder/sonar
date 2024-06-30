@@ -119,25 +119,6 @@ verification:
         scratches: true
         # Applique un filtre d'ondulation (effet ondulé)
         ripple: true
-        # Applique un filtre de bosse (texte accentué)
-        bump: true
-        # Filtre de distorsion
-        distortion:
-          # Sonar devrait-il appliquer un filtre de distorsion ?
-          enabled: true
-          # Quelle forme Sonar devrait-il utiliser pour le filtre de distorsion ?
-          # Types possibles : 0, 1, 2, 3
-          # - 0 : Croix
-          # - 1 : Lignes
-          # - 2 : Cercles
-          # - 3 : Carrés
-          shape: 2
-          # Distance entre les pixels/objets déformés
-          distance: 5
-          # Densité des pixels/objets déformés
-          density: 0.1
-          # Quantité de mélange entre les couleurs des objets
-          mix: 0.15
       # Chemin vers l'image d'arrière-plan que Sonar utilise pour le CAPTCHA
       # Si l'image n'est pas trouvée, un bruit sera utilisé comme arrière-plan par défaut
       # Vous pouvez simplement mettre le nom du fichier ici si le fichier est dans le répertoire du plugin

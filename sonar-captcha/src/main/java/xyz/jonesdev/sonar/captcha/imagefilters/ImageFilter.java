@@ -17,24 +17,24 @@
 
 package xyz.jonesdev.sonar.captcha.imagefilters;
 
-import com.jhlabs.image.TransformFilter;
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.Random;
+
 @Getter
-@Setter
-public final class SimpleRippleFilter extends TransformFilter {
-  private float xAmplitude, yAmplitude;
+public abstract class ImageFilter {
+  protected static final Random RANDOM = new Random();
 
-  @Override
-  protected void transformInverse(final int x, final int y, final float @NotNull [] out) {
-    final float nx = (float) y / 13f;
-    final float ny = (float) x / 13f;
-    final float fx = (float) Math.sin(nx);
-    final float fy = (float) Math.sin(ny);
+  public abstract void transform(final @NotNull BufferedImage bufferedImage);
 
-    out[0] = (float) x + xAmplitude * fx;
-    out[1] = (float) y + yAmplitude * fy;
+  protected static int invertColor(final int rgb) {
+    final Color color = new Color(rgb);
+    final int red = 255 - color.getRed();
+    final int green = 255 - color.getGreen();
+    final int blue = 255 - color.getBlue();
+    return new Color(red, green, blue).getRGB();
   }
 }

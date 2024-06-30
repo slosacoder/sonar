@@ -17,25 +17,18 @@
 
 package xyz.jonesdev.sonar.common.fallback.protocol;
 
-import com.jhlabs.image.AbstractBufferedImageOp;
-import com.jhlabs.image.BumpFilter;
-import com.jhlabs.image.SmearFilter;
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.jonesdev.sonar.api.Sonar;
 import xyz.jonesdev.sonar.api.config.SonarConfiguration;
 import xyz.jonesdev.sonar.api.timer.SystemTimer;
 import xyz.jonesdev.sonar.captcha.CodeCaptchaImageGenerator;
-import xyz.jonesdev.sonar.captcha.imagefilters.SimpleRippleFilter;
-import xyz.jonesdev.sonar.captcha.imagefilters.SimpleScratchFilter;
 import xyz.jonesdev.sonar.common.fallback.protocol.map.MapCaptchaInfo;
 import xyz.jonesdev.sonar.common.fallback.protocol.map.MapColorPalette;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,48 +62,9 @@ public class FallbackCaptchaPreparer {
       final CodeCaptchaImageGenerator generator = new CodeCaptchaImageGenerator(128, 128, backgroundImage);
       final char[] dictionary = config.getDictionary().toCharArray();
 
-      // Prepare the filters for the CAPTCHA
-      final List<AbstractBufferedImageOp> filters = new ArrayList<>();
-      if (Sonar.get().getConfig().getVerification().getMapCaptcha().isScratches()) {
-        filters.add(new SimpleScratchFilter(5));
-      }
-      if (Sonar.get().getConfig().getVerification().getMapCaptcha().isRipple()) {
-        final SimpleRippleFilter rippleFilter = new SimpleRippleFilter();
-        rippleFilter.setXAmplitude(0);
-        float yAmplitude = 10 - ThreadLocalRandom.current().nextInt(20);
-        if (Math.abs(yAmplitude) < 3) {
-          yAmplitude = yAmplitude >= 0 ? 3 : -3;
-        }
-        rippleFilter.setYAmplitude(yAmplitude);
-        filters.add(rippleFilter);
-      }
-      if (Sonar.get().getConfig().getVerification().getMapCaptcha().getDistortion().isEnabled()) {
-        final SmearFilter smearFilter = new SmearFilter();
-        smearFilter.setShape(Sonar.get().getConfig().getVerification().getMapCaptcha().getDistortion().getShape());
-        smearFilter.setMix(Sonar.get().getConfig().getVerification().getMapCaptcha().getDistortion().getMix());
-        smearFilter.setDensity(Sonar.get().getConfig().getVerification().getMapCaptcha().getDistortion().getDensity());
-        smearFilter.setDistance(Sonar.get().getConfig().getVerification().getMapCaptcha().getDistortion().getDistance());
-        filters.add(smearFilter);
-      }
-      if (Sonar.get().getConfig().getVerification().getMapCaptcha().isBump()) {
-        filters.add(new BumpFilter());
-      }
-
       for (preparedAmount = 0; preparedAmount < config.getPrecomputeAmount(); preparedAmount++) {
-        if (!Sonar.get().getConfig().getVerification().getMapCaptcha().isAutoColor()) {
-          // Generate a random gradient color if automatic coloring is disabled
-          final Color color0 = Color.getHSBColor((float) Math.random(), 1, 1);
-          final Color color1 = Color.getHSBColor((float) Math.random(), 1, 0.5f);
-          final GradientPaint gradient = new GradientPaint(0, 0, color0,
-            generator.getWidth(), generator.getHeight(), color1);
-          generator.setGradient(gradient);
-        }
-        // Generate CAPTCHA answer
-        final char[] answer = new char[5];
-        for (int j = 0; j < answer.length; j++) {
-          answer[j] = dictionary[ThreadLocalRandom.current().nextInt(dictionary.length)];
-        }
-        final BufferedImage image = generator.createImage(answer, filters);
+        final char[] answer = getRandomAnswer(5, dictionary);
+        final BufferedImage image = generator.createImage(answer);
         // Convert and cache converted Minecraft map bytes
         final int[] buffer = MapColorPalette.getBufferFromImage(image);
         cached[preparedAmount] = new MapCaptchaInfo(image.getWidth(), image.getHeight(), new String(answer), buffer);
@@ -118,6 +72,15 @@ public class FallbackCaptchaPreparer {
 
       Sonar.get().getLogger().info("Finished preparing {} CAPTCHA answers ({}s)!", preparedAmount, timer);
     });
+  }
+
+  @SuppressWarnings("all")
+  private static char @NotNull [] getRandomAnswer(final int length, final char[] dictionary) {
+    final char[] answer = new char[length];
+    for (int i = 0; i < length; i++) {
+      answer[i] = dictionary[ThreadLocalRandom.current().nextInt(dictionary.length)];
+    }
+    return answer;
   }
 
   public boolean isCaptchaAvailable() {

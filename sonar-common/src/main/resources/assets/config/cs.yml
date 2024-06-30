@@ -120,25 +120,6 @@ verification:
         scratches: true
         # Přidá filtr zvlnění (vlnitý efekt)
         ripple: true
-        # Přidá nárazový filtr (zaostřený text)
-        bump: true
-        # Filtr zkreslení
-        distortion:
-          # Měl by Sonar použít filtr zkreslení?
-          enabled: true
-          # Jaký tvar by měl Sonar použít pro filtr zkreslení?
-          # Typy: 0, 1, 2, 3
-          # - 0: Kříže
-          # - 1: Čáry
-          # - 2: Kruhy
-          # - 3: Čtverce
-          shape: 2
-          # Vzdálenost mezi zkreslenými pixely/objekty
-          distance: 5
-          # Hustota zkreslených pixelů/objektů
-          density: 0.1
-          # Míra prolnutí mezi barvami objektů
-          mix: 0.15
       # Cesta k obrázku na pozadí, který Sonar používá pro CAPTCHA
       # Pokud není obrázek nalezen, bude jako výchozí pozadí použit šum
       # Zde můžete jednoduše zadat název souboru, pokud je soubor v adresáři pluginu

@@ -41,7 +41,7 @@ public abstract class FallbackCaptchaSessionHandler extends FallbackSessionHandl
 
     // Kick the player if we don't have any data loaded yet
     if (!FallbackCaptchaPreparer.isCaptchaAvailable()) {
-      user.disconnect(Sonar.get().getConfig().getVerification().getCurrentlyPreparing(), false);
+      user.disconnect(Sonar.get().getConfig().getVerification().getCurrentlyPreparing());
       throw new CorruptedFrameException("Captcha is not available at this time");
     }
 

@@ -17,7 +17,7 @@
 
 package xyz.jonesdev.sonar.captcha;
 
-import com.jhlabs.image.CausticsFilter;
+import com.jhlabs.image.FBMFilter;
 import com.jhlabs.image.SaturationFilter;
 import com.jhlabs.image.UnsharpFilter;
 import lombok.Getter;
@@ -29,6 +29,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.InputStream;
 import java.util.Objects;
 import java.util.Random;
 
@@ -55,15 +56,28 @@ public abstract class CaptchaImageGenerator {
       } catch (Exception exception) {
         // Don't use any special background image
         background = new BufferedImage(width, height, TYPE_INT_RGB);
-        // Fill the entire background image with a noise texture
-        background = new CausticsFilter().filter(background, null);
+        background = new FBMFilter().filter(background, null);
         // Adjust the saturation of the randomly generated background noise
         final SaturationFilter saturationFilter = new SaturationFilter();
-        saturationFilter.setAmount(0.1f + RANDOM.nextFloat() * 0.3f);
+        saturationFilter.setAmount(0.1f * RANDOM.nextFloat());
         background = saturationFilter.filter(background, null);
         // Un-sharpen the background a bit
-        background = new UnsharpFilter().filter(background, null);
+        final UnsharpFilter unsharpFilter = new UnsharpFilter();
+        unsharpFilter.setAmount(2 * RANDOM.nextFloat());
+        background = unsharpFilter.filter(background, null);
       }
+    }
+  }
+
+  protected final Font loadFontFromFile(final @NotNull String path) {
+    try (final InputStream inputStream = getClass().getResourceAsStream(path)) {
+      if (inputStream == null) {
+        throw new IllegalArgumentException("Could not find font file: " + path);
+      }
+      final Font customFont = Font.createFont(Font.TRUETYPE_FONT, inputStream);
+      return customFont.deriveFont(Font.PLAIN, width / 2.5f);
+    } catch (Exception exception) {
+      throw new IllegalStateException(exception);
     }
   }
 

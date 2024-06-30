@@ -119,25 +119,6 @@ verification:
         scratches: true
         # Past een ripple-filter toe (golfeffect)
         ripple: true
-        # Past een bump-filter toe (verscherpte tekst)
-        bump: true
-        # Vervormingsfilter
-        distortion:
-          # Moet Sonar een vervormingsfilter toepassen?
-          enabled: true
-          # Welke vorm moet Sonar gebruiken voor het vervormingsfilter?
-          # Mogelijke typen: 0, 1, 2, 3
-          # - 0: Kruisen
-          # - 1: Lijnen
-          # - 2: Cirkels
-          # - 3: Vierkantjes
-          shape: 2
-          # Afstand tussen vervormde pixels/objecten
-          distance: 5
-          # Dichtheid van de vervormde pixels/objecten
-          density: 0.1
-          # Hoeveelheid overvloeiing tussen de kleuren van objecten
-          mix: 0.15
       # Pad naar de achtergrondafbeelding die Sonar gebruikt voor de CAPTCHA
       # Als de afbeelding niet wordt gevonden, wordt er een ruis gebruikt als standaardachtergrond
       # U kunt eenvoudig de naam van het bestand hier plaatsen als het bestand zich in de plugin map bevindt

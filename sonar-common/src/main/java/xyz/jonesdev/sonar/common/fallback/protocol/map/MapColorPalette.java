@@ -180,7 +180,8 @@ public class MapColorPalette {
       buffer, 0, bufferedImage.getWidth());
 
     for (int i = 0; i < buffer.length; i++) {
-      buffer[i] = mapColorToMinecraft(buffer[i]);
+      final byte mappedByte = mapColorToMinecraft(buffer[i]);
+      buffer[i] = mappedByte == 0 ? 116 : mappedByte;
     }
     return buffer;
   }

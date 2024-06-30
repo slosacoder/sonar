@@ -117,25 +117,6 @@ verification:
         scratches: true
         # Wendet einen Ripple-Filter an (Welleneffekt)
         ripple: true
-        # Wendet einen Bump-Filter an (geschärfter Text)
-        bump: true
-        # Verzerrungsfilter
-        distortion:
-          # Sollte Sonar einen Verzerrungsfilter anwenden?
-          enabled: true
-          # Welche Form sollte Sonar für den Verzerrungsfilter verwenden?
-          # Mögliche Typen: 0, 1, 2, 3
-          # - 0: Kreuze
-          # - 1: Linien
-          # - 2: Kreise
-          # - 3: Quadrate
-          shape: 2
-          # Abstand zwischen verzerrten Pixeln/Objekten
-          distance: 5
-          # Dichte der verzerrten Pixel/Objekte
-          density: 0.1
-          # Ausmaß der Vermischung zwischen den Farben von Objekten
-          mix: 0.15
       # Pfad zum Hintergrundbild, das Sonar für das CAPTCHA verwendet
       # Wenn das Bild nicht gefunden wird, wird ein Rauschen als Standardhintergrund verwendet
       # Sie können hier einfach den Namen der Datei eingeben, wenn sich die Datei im Plugin-Verzeichnis befindet
