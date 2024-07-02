@@ -20,7 +20,6 @@ package xyz.jonesdev.sonar.captcha.imagefilters;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
@@ -29,12 +28,4 @@ public abstract class ImageFilter {
   protected static final Random RANDOM = new Random();
 
   public abstract void transform(final @NotNull BufferedImage bufferedImage);
-
-  protected static int invertColor(final int rgb) {
-    final Color color = new Color(rgb);
-    final int red = 255 - color.getRed();
-    final int green = 255 - color.getGreen();
-    final int blue = 255 - color.getBlue();
-    return new Color(red, green, blue).getRGB();
-  }
 }

@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public final class CircleInverseFilter extends ImageFilter {
   private final int amount, minRadius, maxRadiusExpansion;
+
+  private static final Color MAX_COLOR = new Color(90, 90, 90);
 
   @Override
   public void transform(final @NotNull BufferedImage bufferedImage) {
@@ -63,7 +66,8 @@ public final class CircleInverseFilter extends ImageFilter {
         if (isWithinCircle(x, y, circle, circle.radius)) {
           // Invert colors within the circle
           final int rgb = bufferedImage.getRGB(x, y);
-          final int invertedRGB = invertColor(rgb);
+          final int randomDivisor = 1 + RANDOM.nextInt(3);
+          final int invertedRGB = invertColorAndFilter(rgb, randomDivisor);
           bufferedImage.setRGB(x, y, invertedRGB);
         }
       }
@@ -95,5 +99,13 @@ public final class CircleInverseFilter extends ImageFilter {
     private final float centerX;
     private final float centerY;
     private final int radius;
+  }
+
+  private static int invertColorAndFilter(final int rgb, final int divisor) {
+    final Color color = new Color(rgb);
+    final int red = Math.max(MAX_COLOR.getRed() - color.getRed() / divisor, 0);
+    final int green = Math.max(MAX_COLOR.getGreen() - color.getGreen() / divisor, 0);
+    final int blue = Math.max(MAX_COLOR.getBlue() - color.getBlue() / divisor, 0);
+    return new Color(red, green, blue).getRGB();
   }
 }

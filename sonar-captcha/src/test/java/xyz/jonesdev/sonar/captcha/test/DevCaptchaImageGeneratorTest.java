@@ -28,7 +28,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @UtilityClass
 public class DevCaptchaImageGeneratorTest {
   public void main(final String... args) throws IOException {
-    ImageIO.write(new CodeCaptchaImageGenerator(128 * 1, 128 * 1, null)
+    ImageIO.write(new CodeCaptchaImageGenerator(128 * 3, 128 * 2, null)
         .createImage(getRandomString(5)), "png", new File("output.png"));
   }
 

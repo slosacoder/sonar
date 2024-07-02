@@ -54,9 +54,11 @@ public abstract class CaptchaImageGenerator {
           background = background.getSubimage(0, 0, width, height);
         }
       } catch (Exception exception) {
-        // Don't use any special background image
         background = new BufferedImage(width, height, TYPE_INT_RGB);
-        background = new FBMFilter().filter(background, null);
+        // Add random background noise to the image
+        final FBMFilter fbmFilter = new FBMFilter();
+        fbmFilter.setAmount(0.5f);
+        background = fbmFilter.filter(background, null);
         // Adjust the saturation of the randomly generated background noise
         final SaturationFilter saturationFilter = new SaturationFilter();
         saturationFilter.setAmount(0.1f * RANDOM.nextFloat());

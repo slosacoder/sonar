@@ -27,7 +27,9 @@ import java.awt.image.BufferedImage;
 @Getter
 @RequiredArgsConstructor
 public final class ScratchOverlayFilter extends ImageFilter {
-  private final int amount, lineWidth;
+  private final int amount;
+  private final float lineWidth;
+  private final Paint paint;
 
   @Override
   public void transform(final @NotNull BufferedImage bufferedImage) {
@@ -35,6 +37,7 @@ public final class ScratchOverlayFilter extends ImageFilter {
     final float halfWidth = bufferedImage.getWidth() * 0.5f;
 
     graphics.setStroke(new BasicStroke(lineWidth));
+    graphics.setPaint(paint);
 
     for (int i = 0; i < amount; ++i) {
       final float randomX = bufferedImage.getWidth() * RANDOM.nextFloat();

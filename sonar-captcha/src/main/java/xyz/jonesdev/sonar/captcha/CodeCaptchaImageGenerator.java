@@ -43,9 +43,13 @@ public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
   public CodeCaptchaImageGenerator(final int width, final int height, final @Nullable File backgroundImage) {
     super(width, height, backgroundImage);
 
-    this.font = loadFontFromFile("/assets/fonts/Delius-Regular.ttf");
+    this.scale = height / (128 / 2.5f);
+    this.font = new Font(Font.MONOSPACED, Font.PLAIN, (int) (width / 2.5f));
+
     final Color[] colors = new Color[] {Color.RED, Color.BLUE, Color.CYAN, Color.ORANGE, Color.GREEN, Color.MAGENTA};
     this.possibleGradients = new GradientPaint[colors.length * colors.length];
+
+    // Generate all possible gradient combinations
     for (int i = 0; i < possibleGradients.length; i++) {
       final Color color0 = colors[i % colors.length];
       final Color color1 = colors[(i + 1) % colors.length];
@@ -54,8 +58,7 @@ public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
   }
 
   private final GradientPaint[] possibleGradients;
-
-  private final float scaleModifier = height / (128f / 2.5f);
+  private final float scale;
   private final Font font;
 
   public @NotNull BufferedImage createImage(final char[] answer) {
@@ -73,7 +76,8 @@ public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
     graphics.dispose();
 
     // Apply a scratch filter for adding random lines on the image
-    new ScratchOverlayFilter(4, 1).transform(foregroundImage);
+    new ScratchOverlayFilter(4, scale / 3f, graphics.getPaint()).transform(foregroundImage);
+    // Apply a ripple filter for distorting the text on the image
     new RippleFilter(2, 2).transform(foregroundImage);
 
     // Create a noisy background image
@@ -81,7 +85,7 @@ public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
 
     // Draw random inverse-color circles on the merged image
     final int circleAmount = 2 + RANDOM.nextInt(2);
-    final int minCircleRadius = (int) Math.floor(10 * scaleModifier);
+    final int minCircleRadius = (int) (Math.floor(20 * scale) / circleAmount);
     new CircleInverseFilter(circleAmount, minCircleRadius, minCircleRadius).transform(mergedImage);
 
     return mergedImage;
@@ -108,21 +112,23 @@ public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
       // Apply a transformation to the glyph vector using AffineTransform
       final AffineTransform transformation = AffineTransform.getTranslateInstance(glyphX, glyphY);
       // Randomize character scale
-      final double scaling = 1 + 0.2 * RANDOM.nextDouble();
-      transformation.scale(scaling, scaling);
+      final double scalingX = 0.9 + 0.25 * RANDOM.nextDouble();
+      final double scalingY = 1.5 + 0.25 * RANDOM.nextDouble();
+      transformation.scale(scalingX, scalingY);
+      transformation.translate(scalingX, scalingY + scale * 4);
 
       // Draw the transformed character glyph shape
       final Shape transformedShape = transformation.createTransformedShape(glyphShape);
-      // 40% chance that the text will be stroked
-      if (RANDOM.nextInt(100) <= 40) {
-        final float strokeWidth = 2 + scaleModifier * RANDOM.nextFloat();
+      // 35% chance that the text will be stroked
+      if (RANDOM.nextInt(100) <= 35) {
+        final float strokeWidth = 2 + scale * RANDOM.nextFloat();
         final Stroke stroke = new BasicStroke(strokeWidth);
         final Shape strokedTransformedShape = stroke.createStrokedShape(transformedShape);
         graphics.fill(strokedTransformedShape);
       } else {
         graphics.fill(transformedShape);
-        // 90% chance that the text will have an outline
-        if (RANDOM.nextInt(100) <= 90) {
+        // 85% chance that the text will have an outline
+        if (RANDOM.nextInt(100) <= 85) {
           // Add an outline to the transformed character
           addCharacterOutline(graphics, transformedShape);
         }
@@ -130,16 +136,16 @@ public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
 
       // Increment the X coordinate for the next character by the bounds
       glyphX += glyphBounds.width;
-      glyphY += (int) Math.floor(Math.sin(glyphX * 180) * 5);
+      glyphY += (int) Math.floor(Math.sin(glyphX * 60) * 10);
     }
   }
 
   private void addCharacterOutline(final @NotNull Graphics2D graphics,
                                    final @NotNull Shape transformedShape) {
-    final double minT = scaleModifier / 7.5D;
-    final double tx = minT + scaleModifier * RANDOM.nextDouble();
-    final double ty = minT + scaleModifier * RANDOM.nextDouble();
-    final float strokeWidth = scaleModifier * RANDOM.nextFloat();
+    final double minT = scale / 7.5D;
+    final double tx = minT + scale * RANDOM.nextDouble();
+    final double ty = minT + scale * RANDOM.nextDouble();
+    final float strokeWidth = scale * RANDOM.nextFloat();
 
     // Draw the stroked shape
     final AffineTransform transform = AffineTransform.getTranslateInstance(tx, ty);
