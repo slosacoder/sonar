@@ -45,6 +45,8 @@ public final class RippleFilter extends ImageFilter {
         // Calculate displacement based on sine wave
         final float nx = x / 3f;
         final float ny = y / 3f;
+        final float xAmplitude = this.xAmplitude + RANDOM.nextFloat() * 0.2f;
+        final float yAmplitude = this.yAmplitude + RANDOM.nextFloat() * 0.2f;
         final float dx = (float) Math.sin(ny / yAmplitude) * xAmplitude;
         final float dy = (float) Math.sin(nx / xAmplitude) * yAmplitude;
 

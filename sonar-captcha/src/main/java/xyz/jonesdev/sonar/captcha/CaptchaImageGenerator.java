@@ -18,8 +18,6 @@
 package xyz.jonesdev.sonar.captcha;
 
 import com.jhlabs.image.FBMFilter;
-import com.jhlabs.image.SaturationFilter;
-import com.jhlabs.image.UnsharpFilter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -57,16 +55,9 @@ public abstract class CaptchaImageGenerator {
         background = new BufferedImage(width, height, TYPE_INT_RGB);
         // Add random background noise to the image
         final FBMFilter fbmFilter = new FBMFilter();
-        fbmFilter.setAmount(0.5f);
+        fbmFilter.setAmount(0.7f);
+        fbmFilter.setH(1.15f);
         background = fbmFilter.filter(background, null);
-        // Adjust the saturation of the randomly generated background noise
-        final SaturationFilter saturationFilter = new SaturationFilter();
-        saturationFilter.setAmount(0.1f * RANDOM.nextFloat());
-        background = saturationFilter.filter(background, null);
-        // Un-sharpen the background a bit
-        final UnsharpFilter unsharpFilter = new UnsharpFilter();
-        unsharpFilter.setAmount(2 * RANDOM.nextFloat());
-        background = unsharpFilter.filter(background, null);
       }
     }
   }

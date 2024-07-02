@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.jonesdev.sonar.captcha.imagefilters.CircleInverseFilter;
 import xyz.jonesdev.sonar.captcha.imagefilters.RippleFilter;
-import xyz.jonesdev.sonar.captcha.imagefilters.ScratchOverlayFilter;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -31,15 +30,12 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.Random;
 
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 @Getter
 @Setter
 public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
-  private static final Random RANDOM = new Random();
-
   public CodeCaptchaImageGenerator(final int width, final int height, final @Nullable File backgroundImage) {
     super(width, height, backgroundImage);
 
@@ -53,7 +49,8 @@ public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
     for (int i = 0; i < possibleGradients.length; i++) {
       final Color color0 = colors[i % colors.length];
       final Color color1 = colors[(i + 1) % colors.length];
-      possibleGradients[i] = new GradientPaint(0, 0, color0, width, height, color1);
+      possibleGradients[i] = new GradientPaint(0, 0, color0,
+        width / 3f, height / 3f, color1, true);
     }
   }
 
@@ -75,8 +72,20 @@ public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
     // Make sure to dispose the graphics after using it
     graphics.dispose();
 
+    // Add random displaced lines to the text
+    /*final CrystallizeFilter crystallizeFilter = new CrystallizeFilter();
+    crystallizeFilter.setTurbulence(0.1f + 0.25f * RANDOM.nextFloat());
+    crystallizeFilter.setScale(1);
+    foregroundImage = crystallizeFilter.filter(foregroundImage, null);*/
+
+    // Add a bit of distortion to the text
+    /*final MarbleFilter marbleFilter = new MarbleFilter();
+    marbleFilter.setTurbulence(0.1f + 0.25f * RANDOM.nextFloat());
+    foregroundImage = marbleFilter.filter(foregroundImage, null);*/
+
     // Apply a scratch filter for adding random lines on the image
-    new ScratchOverlayFilter(4, scale / 3f, graphics.getPaint()).transform(foregroundImage);
+    //new ScratchOverlayFilter(4, scale / 3f, graphics.getPaint()).transform(foregroundImage);
+
     // Apply a ripple filter for distorting the text on the image
     new RippleFilter(2, 2).transform(foregroundImage);
 
@@ -87,6 +96,8 @@ public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
     final int circleAmount = 2 + RANDOM.nextInt(2);
     final int minCircleRadius = (int) (Math.floor(20 * scale) / circleAmount);
     new CircleInverseFilter(circleAmount, minCircleRadius, minCircleRadius).transform(mergedImage);
+
+    //mergedImage = new EmbossFilter().filter(mergedImage, null);
 
     return mergedImage;
   }
@@ -121,7 +132,7 @@ public final class CodeCaptchaImageGenerator extends CaptchaImageGenerator {
       final Shape transformedShape = transformation.createTransformedShape(glyphShape);
       // 35% chance that the text will be stroked
       if (RANDOM.nextInt(100) <= 35) {
-        final float strokeWidth = 2 + scale * RANDOM.nextFloat();
+        final float strokeWidth = 2.5f + scale * RANDOM.nextFloat();
         final Stroke stroke = new BasicStroke(strokeWidth);
         final Shape strokedTransformedShape = stroke.createStrokedShape(transformedShape);
         graphics.fill(strokedTransformedShape);
