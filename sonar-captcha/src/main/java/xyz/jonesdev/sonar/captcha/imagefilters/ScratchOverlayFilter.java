@@ -20,6 +20,7 @@ package xyz.jonesdev.sonar.captcha.imagefilters;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -29,7 +30,7 @@ import java.awt.image.BufferedImage;
 public final class ScratchOverlayFilter extends ImageFilter {
   private final int amount;
   private final float lineWidth;
-  private final Paint paint;
+  private final @Nullable Paint paint;
 
   @Override
   public void transform(final @NotNull BufferedImage bufferedImage) {
